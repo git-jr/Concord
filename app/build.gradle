@@ -59,6 +59,7 @@ dependencies {
     implementation "com.google.accompanist:accompanist-navigation-material:0.30.0"
 
     implementation "io.coil-kt:coil-compose:2.3.0"
+    implementation "androidx.activity:activity-ktx:1.7.0"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

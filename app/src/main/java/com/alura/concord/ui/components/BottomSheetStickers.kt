@@ -28,7 +28,7 @@ fun BottomSheetStickers(
         verticalArrangement = Arrangement.Center
     ) {
         Spacer(modifier = Modifier.height(32.dp))
-        Text(text = "Selecione o stickers", textAlign = TextAlign.Center)
+        Text(text = "Selecione os stickers", textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(16.dp))
 
         val stickerList = stickers

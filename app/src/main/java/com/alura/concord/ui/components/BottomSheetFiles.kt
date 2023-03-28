@@ -26,6 +26,7 @@ import com.alura.concord.R
 @Composable
 fun BottomSheetFiles(
     onItemClick: () -> Unit = {},
+    onSelectPhoto: () -> Unit = {}
 ) {
     Column(
         Modifier
@@ -47,7 +48,7 @@ fun BottomSheetFiles(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 IconButton(
-                    onClick = onItemClick,
+                    onClick = onSelectPhoto,
                     Modifier.background(
                         color = Color(android.graphics.Color.MAGENTA),
                         shape = CircleShape

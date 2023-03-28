@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Send
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,6 +21,7 @@ import androidx.core.graphics.toColorInt
 import com.alura.concord.R
 import com.alura.concord.data.Author
 import com.alura.concord.data.messageListSample
+import com.alura.concord.ui.components.AsyncImage
 import com.alura.concord.ui.components.MessageItemAi
 import com.alura.concord.ui.components.MessageItemLoad
 import com.alura.concord.ui.components.MessageItemUser
@@ -57,6 +60,21 @@ fun ChatScreen(
                 }
             }
             Spacer(modifier = Modifier.height(4.dp))
+
+            if (state.imageInSelection.isNotEmpty()) {
+                Box(
+                    contentAlignment = Alignment.BottomEnd,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color("#FFE9EFFD".toColorInt())),
+                ) {
+                    AsyncImage(
+                        modifier = Modifier.size(100.dp).padding(8.dp).clip(RoundedCornerShape(5)),
+                        imageUrl = state.imageInSelection
+                    )
+                }
+            }
+            Divider(modifier = Modifier.height(1.dp))
             EntryTextBar(
                 state,
                 onShowSelectorFile = onShowSelectorFile,

@@ -17,11 +17,18 @@ class ChatViewModel : ViewModel() {
 
     init {
         _uiState.update { state ->
-            state.copy(onMessageValueChange = {
-                _uiState.value = _uiState.value.copy(
-                    messageValue = it
-                )
-            })
+            state.copy(
+                onMessageValueChange = {
+                    _uiState.value = _uiState.value.copy(
+                        messageValue = it
+                    )
+                },
+                onImageInSelectionChange = {
+                    _uiState.value = _uiState.value.copy(
+                        imageInSelection = it
+                    )
+                },
+            )
         }
 
         _uiState.value = _uiState.value.copy(
