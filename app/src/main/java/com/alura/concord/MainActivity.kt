@@ -1,5 +1,8 @@
 package com.alura.concord
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -13,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -30,10 +34,14 @@ import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.google.accompanist.navigation.material.bottomSheet
 import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import kotlinx.coroutines.launch
+import java.io.File
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // requestFilesPermission()
+
         setContent {
             ConcordTheme {
                 Surface(
@@ -44,6 +52,36 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun requestFilesPermission() {
+//        val requestPermissionLauncher =
+//            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+//                if (isGranted) {
+//                    // A permissão foi concedida. Agora você pode acessar os arquivos protegidos pelo sistema.
+//                } else {
+//                    // A permissão não foi concedida. Você precisa informar o usuário para conceder a permissão para o aplicativo.
+//                }
+//            }
+
+        val readExternalStoragePermission = android.Manifest.permission.READ_EXTERNAL_STORAGE
+        val readMediaImagesPermission = "android.permission.READ_MEDIA_IMAGES"
+
+        if (ContextCompat.checkSelfPermission(
+                this,
+                readExternalStoragePermission
+            ) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                this,
+                readMediaImagesPermission
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            // As permissões já foram concedidas. Você pode acessar as imagens.
+        } else {
+            // As permissões ainda não foram concedidas. Solicite as permissões explicitamente.
+            // requestPermissionLauncher.launch(arrayOf(readExternalStoragePermission, readMediaImagesPermission))
+        }
+
+    }
 }
 
 @OptIn(ExperimentalMaterialNavigationApi::class)
@@ -51,9 +89,11 @@ class MainActivity : ComponentActivity() {
 fun ConcordApp() {
     val bottomSheetNavigator = rememberBottomSheetNavigator()
     val navController = rememberNavController(bottomSheetNavigator)
+    val context = LocalContext.current
 
     val viewModel = viewModel<ChatViewModel>()
     val state by viewModel.uiState.collectAsState()
+    viewModel.loadRecentImages(context)
 
     ModalBottomSheetLayout(bottomSheetNavigator) {
         NavHost(navController, ConcordRoute.HOME) {
@@ -73,12 +113,18 @@ fun ConcordApp() {
             }
 
             bottomSheet(ConcordRoute.BOTTOMSHEETFILE) {
+
                 val pickMedia =
                     rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                        // Callback is invoked after the user selects a media item or closes the
-                        // photo picker.
                         if (uri != null) {
-                            state.onImageInSelectionChange(uri.toString())
+
+                            val contentResolver = context.contentResolver
+                            val takeFlags =
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+                            contentResolver.takePersistableUriPermission(uri, takeFlags)
+
+                            viewModel.addNewRecentImage(context, uri.toString())
                             navController.navigateUp()
                             Log.d("PhotoPicker", "Selected URI: $uri")
                         } else {
@@ -91,7 +137,6 @@ fun ConcordApp() {
                         navController.navigate(ConcordRoute.BOTTOMSHEETFILE)
                     },
                     onSelectPhoto = {
-                        //openGallery()
                         val mimeType = "image/*"
                         pickMedia.launch(
                             PickVisualMediaRequest(
@@ -114,40 +159,6 @@ fun ConcordApp() {
             }
         }
     }
-}
-
-//val result = remember { mutableStateOf<Bitmap?>(null) }
-//val launcher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) {
-//    result.value = it
-//}
-@Composable
-fun openGallery() {
-
-    // Registers a photo picker activity launcher in single-select mode.
-    val pickMedia =
-        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            // Callback is invoked after the user selects a media item or closes the
-            // photo picker.
-            if (uri != null) {
-                Log.d("PhotoPicker", "Selected URI: $uri")
-            } else {
-                Log.d("PhotoPicker", "No media selected")
-            }
-        }
-
-// Include only one of the following calls to launch(), depending on the types
-// of media that you want to allow the user to choose from.
-
-// Launch the photo picker and allow the user to choose images and videos.
-    pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
-
-// Launch the photo picker and allow the user to choose only images.
-    pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-
-// Launch the photo picker and allow the user to choose only videos.
-    pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
-
-// Launch the photo picker and allow the user to choose only images/videos of a
 }
 
 @Composable
