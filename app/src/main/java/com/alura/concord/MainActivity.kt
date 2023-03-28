@@ -1,11 +1,12 @@
 package com.alura.concord
 
+import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
@@ -15,9 +16,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -35,13 +35,12 @@ import com.google.accompanist.navigation.material.bottomSheet
 import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // requestFilesPermission()
-
         setContent {
             ConcordTheme {
                 Surface(
@@ -53,36 +52,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun requestFilesPermission() {
-//        val requestPermissionLauncher =
-//            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-//                if (isGranted) {
-//                    // A permissão foi concedida. Agora você pode acessar os arquivos protegidos pelo sistema.
-//                } else {
-//                    // A permissão não foi concedida. Você precisa informar o usuário para conceder a permissão para o aplicativo.
-//                }
-//            }
-
-        val readExternalStoragePermission = android.Manifest.permission.READ_EXTERNAL_STORAGE
-        val readMediaImagesPermission = "android.permission.READ_MEDIA_IMAGES"
-
-        if (ContextCompat.checkSelfPermission(
-                this,
-                readExternalStoragePermission
-            ) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(
-                this,
-                readMediaImagesPermission
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            // As permissões já foram concedidas. Você pode acessar as imagens.
-        } else {
-            // As permissões ainda não foram concedidas. Solicite as permissões explicitamente.
-            // requestPermissionLauncher.launch(arrayOf(readExternalStoragePermission, readMediaImagesPermission))
-        }
-
-    }
 }
+
 
 @OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
@@ -113,43 +84,19 @@ fun ConcordApp() {
             }
 
             bottomSheet(ConcordRoute.BOTTOMSHEETFILE) {
-
                 val pickMedia =
-                    rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                        if (uri != null) {
-
-                            val contentResolver = context.contentResolver
-                            val takeFlags =
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-
-                            contentResolver.takePersistableUriPermission(uri, takeFlags)
-
-                            viewModel.addNewRecentImage(context, uri.toString())
-                            navController.navigateUp()
-                            Log.d("PhotoPicker", "Selected URI: $uri")
-                        } else {
-                            Log.d("PhotoPicker", "No media selected")
-                        }
-                    }
+                    setResultFromImageSelection(context, viewModel, navController)
 
                 BottomSheetFiles(
                     onItemClick = {
                         navController.navigate(ConcordRoute.BOTTOMSHEETFILE)
                     },
                     onSelectPhoto = {
-                        val mimeType = "image/*"
-                        pickMedia.launch(
-                            PickVisualMediaRequest(
-                                ActivityResultContracts.PickVisualMedia.SingleMimeType(
-                                    mimeType
-                                )
-                            )
-                        )
+                        launchPickVisualMediaImage(pickMedia)
                     })
             }
 
             bottomSheet(ConcordRoute.BOTTOMSHEETSTICKER) {
-                val context = LocalContext.current
 
                 BottomSheetStickers(onSelectedSticker = {
                     context.showMessage(it)
@@ -159,6 +106,88 @@ fun ConcordApp() {
             }
         }
     }
+}
+
+@Composable
+private fun setResultFromImageSelection(
+    context: Context,
+    viewModel: ChatViewModel,
+    navController: NavHostController
+): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
+    val pickMedia =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) {
+                try {
+                    val contentResolver = context.contentResolver
+                    val takeFlags =
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+                    contentResolver.takePersistableUriPermission(uri, takeFlags)
+                    viewModel.addNewRecentImage(context, uri.toString())
+
+                } catch (e: Exception) {
+                    // errors from Android 13
+                    Log.e("TAG", "Erro ao tentar persistir a URI ")
+
+                    val file = createCopyFromInternalStorage(context, uri)
+                    file?.let {
+                        viewModel.addNewRecentImage(context, file.path)
+                    }
+
+                }
+
+                navController.navigateUp()
+                Log.d("PhotoPicker", "Selected URI: $uri")
+            } else {
+                Log.d("PhotoPicker", "No media selected")
+            }
+        }
+    return pickMedia
+}
+
+private fun createCopyFromInternalStorage(context: Context, uri: Uri): File? {
+    // Obtenha um InputStream a partir da Uri usando o ContentResolver
+    val inputStream = context.contentResolver.openInputStream(uri)
+
+    // Verifique se o InputStream não é nulo
+    inputStream?.use {
+
+        // Crie um arquivo para salvar o conteúdo
+        val file =
+            File(
+                context.getDir("temImages", Context.MODE_PRIVATE),
+                UUID.randomUUID().toString()
+            )
+
+        // Crie um FileOutputStream para gravar o conteúdo do InputStream no arquivo
+        val outputStream = FileOutputStream(file)
+
+        // Crie um buffer para armazenar os dados lidos do InputStream
+        val buffer = ByteArray(4096)
+
+        // Leia os dados do InputStream e grave-os no FileOutputStream usando o buffer
+        var bytesRead = inputStream.read(buffer)
+        while (bytesRead >= 0) {
+            outputStream.write(buffer, 0, bytesRead)
+            bytesRead = inputStream.read(buffer)
+        }
+
+        // Feche o FileOutputStream
+        outputStream.close()
+        return file
+    }
+    return null
+}
+
+private fun launchPickVisualMediaImage(pickMedia: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>) {
+    val mimeType = "image/*"
+    pickMedia.launch(
+        PickVisualMediaRequest(
+            ActivityResultContracts.PickVisualMedia.SingleMimeType(
+                mimeType
+            )
+        )
+    )
 }
 
 @Composable
@@ -189,12 +218,6 @@ private fun HomeScreen(
             updateshowError()
         }
     }
-}
-
-@Preview
-@Composable
-fun SelectedImagePreviw() {
-    SelectedImagePreviw()
 }
 
 
