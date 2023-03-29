@@ -6,8 +6,8 @@ data class ChatScreenUiState(
     val messages: List<Message> = emptyList(),
     val messageValue: String = "",
     val onMessageValueChange: (String) -> Unit = {},
-    val onImageInSelectionChange: (String) -> Unit = {},
+    val onMediaInSelectionChange: (String) -> Unit = {},
     val showError: Boolean = false,
     val error: String = "",
-    val imageInSelection: String = ""
+    val mediaInSelection: String = ""
 )

@@ -64,7 +64,6 @@ fun ConcordApp() {
 
     val viewModel = viewModel<ChatViewModel>()
     val state by viewModel.uiState.collectAsState()
-    viewModel.loadRecentImages(context)
 
     ModalBottomSheetLayout(bottomSheetNavigator) {
         NavHost(navController, ConcordRoute.HOME) {
@@ -74,6 +73,7 @@ fun ConcordApp() {
                 HomeScreen(state = state,
                     sendMessage = {
                         viewModel.sendMessage()
+                       // viewModel.saveInDataStore(context)
                     }, updateshowError = {
                         viewModel.updateshowError()
                     }, showSheetFiles = {
@@ -123,7 +123,7 @@ private fun setResultFromImageSelection(
                         Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
                     contentResolver.takePersistableUriPermission(uri, takeFlags)
-                    viewModel.addNewRecentImage(context, uri.toString())
+                    viewModel.loadMediaInScreen(uri.toString())
 
                 } catch (e: Exception) {
                     // errors from Android 13
@@ -131,9 +131,8 @@ private fun setResultFromImageSelection(
 
                     val file = createCopyFromInternalStorage(context, uri)
                     file?.let {
-                        viewModel.addNewRecentImage(context, file.path)
+                        viewModel.loadMediaInScreen(file.path)
                     }
-
                 }
 
                 navController.navigateUp()

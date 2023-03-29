@@ -11,11 +11,14 @@ import com.alura.concord.R
 
 @Composable
 fun AsyncImage(
-    modifier: Modifier = Modifier, imageUrl: String? = null, description: String? = null
+    modifier: Modifier = Modifier,
+    imageUrl: String? = null,
+    description: String? = null,
+    contentScale: ContentScale = ContentScale.Crop,
 ) {
     AsyncImage(
         modifier = modifier,
-        contentScale = ContentScale.Crop,
+        contentScale = contentScale,
         model = ImageRequest.Builder(LocalContext.current).data(imageUrl).build(),
         placeholder = painterResource(R.drawable.image_place_holder),
         error = painterResource(R.drawable.image_place_holder),

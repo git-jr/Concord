@@ -5,6 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,31 +16,48 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
+import com.alura.concord.data.Message
 import kotlinx.coroutines.delay
 
 @Composable
-fun MessageItemUser(value: String) {
+fun MessageItemUser(message: Message) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.End
     ) {
-        Row {
-            Spacer(Modifier.size(50.dp))
+        Column(
+            Modifier
+                .background(
+                    color = Color("#FF567AF4".toColorInt()),
+                    shape = RoundedCornerShape(25.dp, 25.dp, 0.dp, 25.dp)
+                )
+                .padding(16.dp)
+                .width(IntrinsicSize.Min),
+        ) {
+            if (message.mediaLink.isNotEmpty()) {
+                AsyncImage(
+                    modifier = Modifier.widthIn(
+                        min = 200.dp,
+                        max = 300.dp
+                    ).padding(2.dp)
+                        .clip(RoundedCornerShape(5)),
+                    imageUrl = message.mediaLink,
+                    contentScale = ContentScale.FillWidth
+                )
+            }
             Text(
-                value,
-                Modifier
-                    .background(
-                        color = Color("#FF567AF4".toColorInt()),
-                        shape = RoundedCornerShape(25.dp, 25.dp, 0.dp, 25.dp)
-                    )
-                    .padding(16.dp),
+                message.content,
                 color = Color.White,
+                modifier = Modifier.padding(horizontal = 4.dp)
             )
         }
     }
@@ -120,3 +141,61 @@ fun MessageItemLoad() {
         }
     }
 }
+
+@Preview
+@Composable
+fun MessageItemUserPreview() {
+    MessageItemUser(Message())
+}
+
+
+@Composable
+fun MessageItemAiTest(value: String) {
+    BoxWithConstraints(
+        Modifier.fillMaxSize()
+    ) {
+        val maxWidth = this.maxWidth
+        val maxHeight = this.maxHeight
+
+        Surface(
+            modifier = Modifier
+                .padding(16.dp)
+                .size(
+                    width = maxWidth * 0.8f,
+                    height = maxHeight * 0.5f
+                ),
+            color = Color(0xFF64B5F6),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Row(
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(end = 16.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        "Hello",
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    )
+                    Text(
+                        "2:30 PM"
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
+        }
+    }
+}
+

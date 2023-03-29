@@ -8,9 +8,13 @@ import com.alura.concord.data.Author
 import com.alura.concord.data.Message
 import com.alura.concord.data.messageListSample
 import com.alura.concord.database.preferences.PreferencesKey
+import com.alura.concord.database.preferences.PreferencesKey.RECENT_IMAGES
 import com.alura.concord.database.preferences.dataStoreFiles
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class ChatViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ChatScreenUiState())
@@ -25,9 +29,9 @@ class ChatViewModel : ViewModel() {
                         messageValue = it
                     )
                 },
-                onImageInSelectionChange = {
+                onMediaInSelectionChange = {
                     _uiState.value = _uiState.value.copy(
-                        imageInSelection = it
+                        mediaInSelection = it
                     )
                 },
             )
@@ -36,34 +40,35 @@ class ChatViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(
             messages = messageListSample,
         )
-
-    }
-
-    fun loadRecentImages(context: Context) {
-        viewModelScope.launch {
-            readArrayStringFromDataStore(context).collect {
-                if (it.isEmpty()) return@collect
-                val imageUri = it.last()
-                if (imageUri.isNotEmpty()) {
-                    _uiState.value = _uiState.value.copy(
-                        imageInSelection = imageUri
-                    )
-                }
-            }
-        }
-    }
-
-    fun addNewRecentImage(context: Context, newIamge: String) {
-        viewModelScope.launch {
-            addToArrayStringAndSaveToDataStoreIfNotExists(context, newIamge)
-        }
     }
 
     fun sendMessage() {
         with(_uiState) {
-            val messageValue = value.messageValue
+            //val messageValue = value.messageValue
             updateUi()
-            searchResponse(messageValue)
+            //searchResponse(messageValue)
+        }
+    }
+
+    fun saveInDataStore(context: Context) {
+        viewModelScope.launch {
+            context.dataStoreFiles.edit { preferences ->
+                val currentArrayMesssage = preferences[RECENT_IMAGES] ?: ""
+                val currentMessageSerialized =
+                    Json.decodeFromString<List<Message>>(currentArrayMesssage).toMutableList()
+
+                val userMessage = Message(
+                    content = _uiState.value.messageValue,
+                    author = Author.USER,
+                    mediaLink = uiState.value.mediaInSelection
+                )
+
+                currentMessageSerialized.add(userMessage)
+
+                val newArrayString = Json.encodeToString(currentMessageSerialized)
+                preferences[RECENT_IMAGES] = newArrayString
+
+            }
         }
     }
 
@@ -73,7 +78,9 @@ class ChatViewModel : ViewModel() {
     private fun updateUi() {
         with(_uiState) {
             val userMessage = Message(
-                content = value.messageValue, author = Author.USER
+                content = value.messageValue,
+                author = Author.USER,
+                mediaLink = value.mediaInSelection
             )
 
             value = value.copy(
@@ -83,7 +90,8 @@ class ChatViewModel : ViewModel() {
                         Message(author = Author.LOAD)
                     )
                 ),
-                messageValue = ""
+                messageValue = "",
+                mediaInSelection = ""
             )
         }
     }
@@ -96,26 +104,19 @@ class ChatViewModel : ViewModel() {
     }
 
 
-    private fun readArrayStringFromDataStore(context: Context): Flow<Array<String>> {
+    private fun readArrayStringFromDataStore(context: Context): Flow<List<Message>> {
         return context.dataStoreFiles.data.map { preferences ->
-            preferences[PreferencesKey.RECENT_IMAGES]?.split(",")?.toTypedArray() ?: emptyArray()
+            val messageArray: String = preferences[PreferencesKey.RECENT_IMAGES] ?: ""
+            val messageList = Json.decodeFromString<List<Message>>(messageArray)
+            messageList
         }
     }
 
-    private suspend fun addToArrayStringAndSaveToDataStoreIfNotExists(
-        context: Context,
-        newString: String
+    fun loadMediaInScreen(
+        uri: String
     ) {
-        context.dataStoreFiles.edit { preferences ->
-            val currentArray =
-                preferences[PreferencesKey.RECENT_IMAGES]?.split(",")?.toMutableList()
-                    ?: mutableListOf()
-
-            if (!currentArray.contains(newString)) {
-                currentArray.add(newString)
-                preferences[PreferencesKey.RECENT_IMAGES] =
-                    currentArray.joinToString(separator = ",")
-            }
-        }
+        _uiState.value = _uiState.value.copy(
+            mediaInSelection = uri
+        )
     }
 }

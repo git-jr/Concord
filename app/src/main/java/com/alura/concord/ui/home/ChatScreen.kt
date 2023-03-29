@@ -49,7 +49,7 @@ fun ChatScreen(
                         }
 
                         Author.USER -> {
-                            MessageItemUser(value = it.content)
+                            MessageItemUser(it)
                         }
 
                         Author.LOAD -> {
@@ -61,7 +61,7 @@ fun ChatScreen(
             }
             Spacer(modifier = Modifier.height(4.dp))
 
-            if (state.imageInSelection.isNotEmpty()) {
+            if (state.mediaInSelection.isNotEmpty()) {
                 Box(
                     contentAlignment = Alignment.BottomEnd,
                     modifier = Modifier
@@ -70,7 +70,7 @@ fun ChatScreen(
                 ) {
                     AsyncImage(
                         modifier = Modifier.size(100.dp).padding(8.dp).clip(RoundedCornerShape(5)),
-                        imageUrl = state.imageInSelection
+                        imageUrl = state.mediaInSelection
                     )
                 }
             }
