@@ -45,7 +45,7 @@ fun ChatScreen(
                 items(state.messages.reversed(), contentType = { it.author }) { it ->
                     when (it.author) {
                         Author.AI -> {
-                            MessageItemAi(value = it.content)
+                            MessageItemAi(it)
                         }
 
                         Author.USER -> {

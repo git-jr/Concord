@@ -34,37 +34,90 @@ fun MessageItemUser(message: Message) {
             .fillMaxWidth(),
         horizontalAlignment = Alignment.End
     ) {
-        Column(
-            Modifier
-                .background(
-                    color = Color("#FF567AF4".toColorInt()),
-                    shape = RoundedCornerShape(25.dp, 25.dp, 0.dp, 25.dp)
-                )
-                .padding(16.dp)
-                .width(IntrinsicSize.Min),
-        ) {
-            if (message.mediaLink.isNotEmpty()) {
-                AsyncImage(
-                    modifier = Modifier.widthIn(
-                        min = 200.dp,
-                        max = 300.dp
-                    ).padding(2.dp)
-                        .clip(RoundedCornerShape(5)),
-                    imageUrl = message.mediaLink,
-                    contentScale = ContentScale.FillWidth
+        Row(Modifier.padding(start = 50.dp)) {
+            val hasImage = message.mediaLink.isNotEmpty()
+            val intrinsicSizeLayout = if (hasImage) {
+                IntrinsicSize.Min
+            } else {
+                IntrinsicSize.Max
+            }
+            Column(
+                Modifier
+                    .background(
+                        color = Color("#FF567AF4".toColorInt()),
+                        shape = RoundedCornerShape(25.dp, 25.dp, 0.dp, 25.dp)
+                    )
+                    .padding(16.dp)
+                    .width(intrinsicSizeLayout),
+            ) {
+                if (hasImage) {
+                    AsyncImage(
+                        modifier = Modifier.widthIn(
+                            min = 200.dp,
+                            max = 300.dp
+                        ).padding(2.dp)
+                            .clip(RoundedCornerShape(10)),
+                        imageUrl = message.mediaLink,
+                        contentScale = ContentScale.FillWidth
+                    )
+                }
+                Text(
+                    message.content,
+                    color = Color.White,
+                    modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }
-            Text(
-                message.content,
-                color = Color.White,
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
         }
     }
 }
 
 @Composable
-fun MessageItemAi(value: String) {
+fun MessageItemAi(message: Message) {
+    Column(
+        modifier = Modifier
+            .padding(vertical = 8.dp)
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Row(Modifier.padding(end = 50.dp)) {
+            val hasImage = message.mediaLink.isNotEmpty()
+            val intrinsicSizeLayout = if (hasImage) {
+                IntrinsicSize.Min
+            } else {
+                IntrinsicSize.Max
+            }
+            Column(
+                Modifier
+                    .background(
+                        color = Color("#FFE9EFFD".toColorInt()),
+                        shape = RoundedCornerShape(0.dp, 25.dp, 25.dp, 25.dp)
+                    )
+                    .padding(16.dp)
+                    .width(intrinsicSizeLayout),
+            ) {
+                if (hasImage) {
+                    AsyncImage(
+                        modifier = Modifier.widthIn(
+                            min = 200.dp,
+                            max = 300.dp
+                        ).padding(2.dp)
+                            .clip(RoundedCornerShape(10)),
+                        imageUrl = message.mediaLink,
+                        contentScale = ContentScale.FillWidth
+                    )
+                }
+                Text(
+                    message.content,
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MessageItemAiOld(value: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()

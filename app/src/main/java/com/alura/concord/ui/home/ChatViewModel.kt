@@ -36,6 +36,16 @@ class ChatViewModel : ViewModel() {
                 },
             )
         }
+    }
+
+    fun loadSampleMessages(context: Context) {
+//        viewModelScope.launch {
+//            readArrayStringFromDataStore(context).collect {
+//                _uiState.value = _uiState.value.copy(
+//                    messages = it,
+//                )
+//            }
+//        }
 
         _uiState.value = _uiState.value.copy(
             messages = messageListSample,
@@ -45,22 +55,24 @@ class ChatViewModel : ViewModel() {
     fun sendMessage() {
         with(_uiState) {
             //val messageValue = value.messageValue
-            updateUi()
+            // updateUi()
             //searchResponse(messageValue)
         }
     }
 
     fun saveInDataStore(context: Context) {
+        updateUi()
         viewModelScope.launch {
             context.dataStoreFiles.edit { preferences ->
-                val currentArrayMesssage = preferences[RECENT_IMAGES] ?: ""
+                val currentArrayMesssage = preferences[RECENT_IMAGES] ?: "[]"
                 val currentMessageSerialized =
-                    Json.decodeFromString<List<Message>>(currentArrayMesssage).toMutableList()
+                    Json.decodeFromString<List<Message>>(currentArrayMesssage.toString())
+                        .toMutableList()
 
                 val userMessage = Message(
                     content = _uiState.value.messageValue,
                     author = Author.USER,
-                    mediaLink = uiState.value.mediaInSelection
+                    mediaLink = _uiState.value.mediaInSelection
                 )
 
                 currentMessageSerialized.add(userMessage)
@@ -68,6 +80,9 @@ class ChatViewModel : ViewModel() {
                 val newArrayString = Json.encodeToString(currentMessageSerialized)
                 preferences[RECENT_IMAGES] = newArrayString
 
+                _uiState.value = _uiState.value.copy(
+                    messageValue = "", mediaInSelection = ""
+                )
             }
         }
     }
@@ -86,27 +101,23 @@ class ChatViewModel : ViewModel() {
             value = value.copy(
                 messages = value.messages.plus(
                     listOf(
-                        userMessage,
-                        Message(author = Author.LOAD)
+                        userMessage, Message(author = Author.LOAD)
                     )
                 ),
-                messageValue = "",
-                mediaInSelection = ""
             )
         }
     }
 
     fun updateshowError() {
         _uiState.value = _uiState.value.copy(
-            showError = false,
-            error = ""
+            showError = false, error = ""
         )
     }
 
 
     private fun readArrayStringFromDataStore(context: Context): Flow<List<Message>> {
         return context.dataStoreFiles.data.map { preferences ->
-            val messageArray: String = preferences[PreferencesKey.RECENT_IMAGES] ?: ""
+            val messageArray: String = preferences[RECENT_IMAGES] ?: "[]"
             val messageList = Json.decodeFromString<List<Message>>(messageArray)
             messageList
         }

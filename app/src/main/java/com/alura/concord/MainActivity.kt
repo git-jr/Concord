@@ -1,9 +1,13 @@
 package com.alura.concord
 
+import android.content.ContentResolver
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -37,6 +41,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +56,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
 }
 
 
@@ -63,6 +67,7 @@ fun ConcordApp() {
     val context = LocalContext.current
 
     val viewModel = viewModel<ChatViewModel>()
+    viewModel.loadSampleMessages(context)
     val state by viewModel.uiState.collectAsState()
 
     ModalBottomSheetLayout(bottomSheetNavigator) {
@@ -72,8 +77,8 @@ fun ConcordApp() {
 
                 HomeScreen(state = state,
                     sendMessage = {
+                        viewModel.saveInDataStore(context)
                         viewModel.sendMessage()
-                       // viewModel.saveInDataStore(context)
                     }, updateshowError = {
                         viewModel.updateshowError()
                     }, showSheetFiles = {
@@ -84,16 +89,22 @@ fun ConcordApp() {
             }
 
             bottomSheet(ConcordRoute.BOTTOMSHEETFILE) {
-                val pickMedia =
+                val pickMediaImage =
                     setResultFromImageSelection(context, viewModel, navController)
+                val pickMediaFiles =
+                    setResultFromFileSelection(context, viewModel, navController)
 
                 BottomSheetFiles(
                     onItemClick = {
                         navController.navigate(ConcordRoute.BOTTOMSHEETFILE)
                     },
                     onSelectPhoto = {
-                        launchPickVisualMediaImage(pickMedia)
-                    })
+                        launchPickVisualMedia(pickMediaImage, "image/*")
+                    },
+                    onSelectFile = {
+                        launchPickVisualMedia(pickMediaFiles)
+                    }
+                )
             }
 
             bottomSheet(ConcordRoute.BOTTOMSHEETSTICKER) {
@@ -144,6 +155,43 @@ private fun setResultFromImageSelection(
     return pickMedia
 }
 
+@Composable
+private fun setResultFromFileSelection(
+    context: Context,
+    viewModel: ChatViewModel,
+    navController: NavHostController
+): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
+    val pickMedia =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) {
+                try {
+                    val contentResolver = context.contentResolver
+                    val takeFlags =
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+                    contentResolver.takePersistableUriPermission(uri, takeFlags)
+                    //viewModel.loadMediaInScreen(uri.toString())
+
+                } catch (e: Exception) {
+                    // errors from Android 13
+                    Log.e("TAG", "Erro ao tentar persistir a URI ")
+
+                    val file = createCopyFromInternalStorage(context, uri)
+                    file?.let {
+                        viewModel.loadMediaInScreen(file.path)
+                    }
+                }
+
+                navController.navigateUp()
+                Log.d("PhotoPicker", "Selected URI: $uri")
+            } else {
+                Log.d("PhotoPicker", "No media selected")
+            }
+        }
+    return pickMedia
+}
+
+
 private fun createCopyFromInternalStorage(context: Context, uri: Uri): File? {
     // Obtenha um InputStream a partir da Uri usando o ContentResolver
     val inputStream = context.contentResolver.openInputStream(uri)
@@ -154,7 +202,7 @@ private fun createCopyFromInternalStorage(context: Context, uri: Uri): File? {
         // Crie um arquivo para salvar o conteúdo
         val file =
             File(
-                context.getDir("temImages", Context.MODE_PRIVATE),
+                context.getDir("tempImages", Context.MODE_PRIVATE),
                 UUID.randomUUID().toString()
             )
 
@@ -178,8 +226,10 @@ private fun createCopyFromInternalStorage(context: Context, uri: Uri): File? {
     return null
 }
 
-private fun launchPickVisualMediaImage(pickMedia: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>) {
-    val mimeType = "image/*"
+private fun launchPickVisualMedia(
+    pickMedia: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>,
+    mimeType: String = "*/*"
+) {
     pickMedia.launch(
         PickVisualMediaRequest(
             ActivityResultContracts.PickVisualMedia.SingleMimeType(

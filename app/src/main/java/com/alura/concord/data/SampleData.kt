@@ -23,11 +23,12 @@ val messageListSample = listOf(
     Message(
         LoremIpsum(1).values.first(),
         Author.USER,
-        mediaLink = "/data/user/0/com.alura.concord/app_temImages/35a40586-3d81-4096-9490-9a0040109aac"
+        mediaLink = "/data/user/0/com.alura.concord/app_tempImages/bb061daf-b61f-4f47-95d4-6e8b89b5e3d0"
     ),
+    Message(LoremIpsum(7).values.first(), Author.AI),
 )
 
-val stickers = List(24) { index ->
+val stickersListSample = List(24) { index ->
     Sticker(
         name = "Sticker ${index + 1}",
         url = "https://picsum.photos/200?random=${index + 1}"
