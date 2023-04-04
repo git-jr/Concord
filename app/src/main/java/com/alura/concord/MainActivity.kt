@@ -34,7 +34,7 @@ import com.alura.concord.ui.components.BottomSheetStickers
 import com.alura.concord.ui.home.ChatScreen
 import com.alura.concord.ui.home.ChatScreenUiState
 import com.alura.concord.ui.home.ChatViewModel
-import com.alura.concord.ui.navigation.ConcordRoute
+import com.alura.concord.navigation.ConcordRoute
 import com.alura.concord.ui.theme.ConcordTheme
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
@@ -60,94 +60,12 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     ConcordApp()
-                    val url =
-                        "https://cdn.discordapp.com/attachments/1090351845500792933/1092818021145382912/casa_automatica.png"
-
-                    // downloadImage(url)
-                    downloadImageByCoil(url)
-
                 }
             }
         }
     }
 
-    fun downloadImageByCoil(url: String) {
-        CoroutineScope(IO).launch {
-            // Path for internal app storage
-            var fileOutput = File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                "Opa!.jpeg"
-            )
-            // Path for download storage
-//            fileOutput =
-//                File(this@MainActivity.getDir("tempImages", Context.MODE_PRIVATE), "opa.png")
 
-
-            val request = ImageRequest.Builder(this@MainActivity)
-                .data(url)
-                .target {
-                    val bitmapInputImage = it.toBitmap()
-                    val byteArrayOutputStream = ByteArrayOutputStream()
-                    bitmapInputImage.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-                    val bytesArray = byteArrayOutputStream.toByteArray()
-                    val fileOutputStream = FileOutputStream(fileOutput)
-                    fileOutputStream.write(bytesArray)
-                    fileOutputStream.close()
-                }
-                .build()
-            request.context.imageLoader.execute(request)
-        }
-    }
-
-    private fun downloadImage(url: String) {
-        CoroutineScope(IO).launch {
-            val request = Request.Builder().url(url).build()
-            val client = OkHttpClient()
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
-                // Save without compression
-                val inputStream: InputStream? = response.body?.byteStream()
-                val fileOutput = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    "output2.jpeg"
-                )
-                val outputStream = FileOutputStream(fileOutput)
-                inputStream?.copyTo(outputStream)
-                outputStream.close()
-
-                // Save with compression
-                val bitmapInputImage = BitmapFactory.decodeFile(fileOutput.path)
-                val byteArrayOutputStream = ByteArrayOutputStream()
-                bitmapInputImage.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-                val bytesArray = byteArrayOutputStream.toByteArray()
-                val fileOutput2 = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    "output3.jpeg"
-                )
-                val fileOutputStream = FileOutputStream(fileOutput2)
-                fileOutputStream.write(bytesArray)
-                fileOutputStream.close()
-            }
-        }
-    }
-
-    fun downloadImageOld(url: String) {
-
-        val fileInputImage: File =
-            File(this.getDir("tempImages", Context.MODE_PRIVATE), "revenge.png")
-
-        val bitmapInputImage = BitmapFactory.decodeFile(fileInputImage.path)
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        bitmapInputImage.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-        val bytesArray = byteArrayOutputStream.toByteArray()
-        val fileOutput =
-            File(Environment.getExternalStorageDirectory().absolutePath + "/Download/output2.jpeg")
-
-//        val fileOutput = File(storageVolume.directory.path + "/Download/output1.jpeg")
-        val fileOutputStream = FileOutputStream(fileOutput)
-        fileOutputStream.write(bytesArray)
-        fileOutputStream.close()
-    }
 }
 
 @OptIn(ExperimentalMaterialNavigationApi::class)

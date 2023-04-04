@@ -1,4 +1,4 @@
-package com.alura.concord.ui.navigation
+package com.alura.concord.navigation
 
 object ConcordRoute {
     const val HOME = "Home"
