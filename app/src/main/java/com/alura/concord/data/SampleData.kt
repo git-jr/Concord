@@ -18,12 +18,12 @@ val messageListSample = listOf(
     Message(
         LoremIpsum(13).values.first(),
         Author.USER,
-        mediaLink = "/data/user/0/com.alura.concord/app_temImages/96ea7497-2e7a-4b61-86cb-ec24f7d0db51"
+        mediaLink = "/storage/emulated/0/Download/20210329_105243.jpg"
     ),
     Message(
         LoremIpsum(1).values.first(),
         Author.USER,
-        mediaLink = "/data/user/0/com.alura.concord/app_tempImages/bb061daf-b61f-4f47-95d4-6e8b89b5e3d0"
+        mediaLink = "/sdcard/.transforms/synthetic/picker/0/com.android.providers.media.photopicker/media/1000000049.jpg"
     ),
     Message(LoremIpsum(7).values.first(), Author.AI),
 )

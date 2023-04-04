@@ -129,16 +129,32 @@ private fun setResultFromImageSelection(
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
                 try {
-                    val contentResolver = context.contentResolver
-                    val takeFlags =
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+//                    val contentResolver = context.contentResolver
+//                    val takeFlags =
+//                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+//
+//                    contentResolver.takePersistableUriPermission(uri, takeFlags)
+//                    viewModel.loadMediaInScreen(uri.toString())
 
-                    contentResolver.takePersistableUriPermission(uri, takeFlags)
-                    viewModel.loadMediaInScreen(uri.toString())
 
+                    var filePath: String? = null
+                    if (uri.scheme == "content") { // For PhotoPicker in recents versions from Android
+                        val cursor = context.contentResolver.query(uri, null, null, null, null)
+                        if (cursor != null && cursor.moveToFirst()) {
+                            val columnIndex =
+                                cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+                            filePath = cursor.getString(columnIndex)
+                            cursor.close()
+                        }
+                    } else { // For "documentPicker" from old versions Android (below 13)
+                        filePath = uri.path
+                    }
+
+                    filePath?.let { viewModel.loadMediaInScreen(it) }
+                    Log.i("PhotoPicker", "Sucesso ao tentar persistir a URI ")
                 } catch (e: Exception) {
                     // errors from Android 13
-                    Log.e("TAG", "Erro ao tentar persistir a URI ")
+                    Log.e("PhotoPicker", "Erro ao tentar persistir a URI ${e.cause} ")
 
                     val file = createCopyFromInternalStorage(context, uri)
                     file?.let {
