@@ -1,12 +1,12 @@
 package com.alura.concord
 
-import android.content.ContentResolver
-import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -20,11 +20,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import coil.imageLoader
+import coil.request.ImageRequest
 import com.alura.concord.extensions.showMessage
 import com.alura.concord.ui.components.BottomSheetFiles
 import com.alura.concord.ui.components.BottomSheetStickers
@@ -37,11 +40,16 @@ import com.google.accompanist.navigation.material.ExperimentalMaterialNavigation
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.google.accompanist.navigation.material.bottomSheet
 import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,12 +60,95 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     ConcordApp()
+                    val url =
+                        "https://cdn.discordapp.com/attachments/1090351845500792933/1092818021145382912/casa_automatica.png"
+
+                    // downloadImage(url)
+                    downloadImageByCoil(url)
+
                 }
             }
         }
     }
-}
 
+    fun downloadImageByCoil(url: String) {
+        CoroutineScope(IO).launch {
+            // Path for internal app storage
+            var fileOutput = File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                "Opa!.jpeg"
+            )
+            // Path for download storage
+//            fileOutput =
+//                File(this@MainActivity.getDir("tempImages", Context.MODE_PRIVATE), "opa.png")
+
+
+            val request = ImageRequest.Builder(this@MainActivity)
+                .data(url)
+                .target {
+                    val bitmapInputImage = it.toBitmap()
+                    val byteArrayOutputStream = ByteArrayOutputStream()
+                    bitmapInputImage.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                    val bytesArray = byteArrayOutputStream.toByteArray()
+                    val fileOutputStream = FileOutputStream(fileOutput)
+                    fileOutputStream.write(bytesArray)
+                    fileOutputStream.close()
+                }
+                .build()
+            request.context.imageLoader.execute(request)
+        }
+    }
+
+    private fun downloadImage(url: String) {
+        CoroutineScope(IO).launch {
+            val request = Request.Builder().url(url).build()
+            val client = OkHttpClient()
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                // Save without compression
+                val inputStream: InputStream? = response.body?.byteStream()
+                val fileOutput = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    "output2.jpeg"
+                )
+                val outputStream = FileOutputStream(fileOutput)
+                inputStream?.copyTo(outputStream)
+                outputStream.close()
+
+                // Save with compression
+                val bitmapInputImage = BitmapFactory.decodeFile(fileOutput.path)
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                bitmapInputImage.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                val bytesArray = byteArrayOutputStream.toByteArray()
+                val fileOutput2 = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    "output3.jpeg"
+                )
+                val fileOutputStream = FileOutputStream(fileOutput2)
+                fileOutputStream.write(bytesArray)
+                fileOutputStream.close()
+            }
+        }
+    }
+
+    fun downloadImageOld(url: String) {
+
+        val fileInputImage: File =
+            File(this.getDir("tempImages", Context.MODE_PRIVATE), "revenge.png")
+
+        val bitmapInputImage = BitmapFactory.decodeFile(fileInputImage.path)
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmapInputImage.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+        val bytesArray = byteArrayOutputStream.toByteArray()
+        val fileOutput =
+            File(Environment.getExternalStorageDirectory().absolutePath + "/Download/output2.jpeg")
+
+//        val fileOutput = File(storageVolume.directory.path + "/Download/output1.jpeg")
+        val fileOutputStream = FileOutputStream(fileOutput)
+        fileOutputStream.write(bytesArray)
+        fileOutputStream.close()
+    }
+}
 
 @OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
@@ -128,6 +219,7 @@ private fun setResultFromImageSelection(
     val pickMedia =
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
+                createCopyFromInternalStorage(context, uri)
                 try {
 //                    val contentResolver = context.contentResolver
 //                    val takeFlags =
