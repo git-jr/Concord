@@ -1,4 +1,4 @@
-package com.alura.concord.ui.home
+package com.alura.concord.ui.chat
 
 import com.alura.concord.data.Message
 

@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,11 +19,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
+import com.alura.concord.R
 import com.alura.concord.data.Message
 import kotlinx.coroutines.delay
 
@@ -41,31 +47,57 @@ fun MessageItemUser(message: Message) {
             } else {
                 IntrinsicSize.Max
             }
+
             Column(
                 Modifier
+                    .shadow(1.dp, shape = RoundedCornerShape(10.dp, 0.dp, 10.dp, 10.dp))
                     .background(
-                        color = Color("#FF567AF4".toColorInt()),
-                        shape = RoundedCornerShape(25.dp, 25.dp, 0.dp, 25.dp)
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                        shape = RoundedCornerShape(10.dp, 0.dp, 10.dp, 10.dp),
                     )
-                    .padding(16.dp)
-                    .width(intrinsicSizeLayout),
+                    .padding(4.dp)
+                    .width(intrinsicSizeLayout)
             ) {
                 if (hasImage) {
                     AsyncImage(
-                        modifier = Modifier.widthIn(
-                            min = 200.dp,
-                            max = 300.dp
-                        ).padding(2.dp)
-                            .clip(RoundedCornerShape(10)),
+                        modifier = Modifier
+                            .widthIn(
+                                min = 200.dp,
+                                max = 300.dp
+                            )
+                            .padding(2.dp)
+                            .clip(RoundedCornerShape(10.dp)),
                         imageUrl = message.mediaLink,
                         contentScale = ContentScale.FillWidth
                     )
                 }
                 Text(
-                    message.content,
-                    color = Color.White,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                    text = message.content,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
+
+                Row(
+                    modifier =
+                    Modifier.fillMaxWidth()
+                        .padding(start = 20.dp, end = 4.dp)
+                        .offset(y = (-4).dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = message.date,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                    Spacer(Modifier.width(2.dp))
+                    Icon(
+                        painterResource(id = R.drawable.ic_action_all_done),
+                        stringResource(R.string.message_status),
+                        tint = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
         }
     }
@@ -89,7 +121,7 @@ fun MessageItemAi(message: Message) {
             Column(
                 Modifier
                     .background(
-                        color = Color("#FFE9EFFD".toColorInt()),
+                        color = MaterialTheme.colorScheme.inversePrimary,
                         shape = RoundedCornerShape(0.dp, 25.dp, 25.dp, 25.dp)
                     )
                     .padding(16.dp)
@@ -108,7 +140,7 @@ fun MessageItemAi(message: Message) {
                 }
                 Text(
                     message.content,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }

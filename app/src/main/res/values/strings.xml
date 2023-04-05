@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Concord</string>
+    <string name="message_status">Message status</string>
+    <string name="message">Mensagem</string>
+    <string name="icon_message_or_mic">Mensagem ou Microfone</string>
 </resources>

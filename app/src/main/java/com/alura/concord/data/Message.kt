@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class Message(
     val content: String = "",
     val author: Author = Author.AI,
+    val date: String = "",
     val mediaLink: String = ""
 )
 

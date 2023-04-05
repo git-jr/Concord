@@ -1,4 +1,4 @@
-package com.alura.concord.ui.home
+package com.alura.concord.ui.chat
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
@@ -7,9 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.alura.concord.data.Author
 import com.alura.concord.data.Message
 import com.alura.concord.data.messageListSample
-import com.alura.concord.database.preferences.PreferencesKey
 import com.alura.concord.database.preferences.PreferencesKey.RECENT_IMAGES
 import com.alura.concord.database.preferences.dataStoreFiles
+import com.alura.concord.util.getFormattedCurrentDate
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
@@ -69,10 +69,13 @@ class ChatViewModel : ViewModel() {
                     Json.decodeFromString<List<Message>>(currentArrayMesssage.toString())
                         .toMutableList()
 
+
                 val userMessage = Message(
                     content = _uiState.value.messageValue,
                     author = Author.USER,
-                    mediaLink = _uiState.value.mediaInSelection
+                    mediaLink = _uiState.value.mediaInSelection,
+                    date = getFormattedCurrentDate()
+
                 )
 
                 currentMessageSerialized.add(userMessage)
@@ -95,7 +98,8 @@ class ChatViewModel : ViewModel() {
             val userMessage = Message(
                 content = value.messageValue,
                 author = Author.USER,
-                mediaLink = value.mediaInSelection
+                mediaLink = value.mediaInSelection,
+                date = getFormattedCurrentDate()
             )
 
             value = value.copy(
@@ -128,6 +132,12 @@ class ChatViewModel : ViewModel() {
     ) {
         _uiState.value = _uiState.value.copy(
             mediaInSelection = uri
+        )
+    }
+
+    fun deselectMedia() {
+        _uiState.value = _uiState.value.copy(
+            mediaInSelection = ""
         )
     }
 }
