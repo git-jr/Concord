@@ -1,16 +1,20 @@
 package com.alura.concord.data
 
-import kotlinx.serialization.Serializable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-@Serializable // Usando apenas para serialização temporária, remover quando trocar para Room
+@Entity
 data class Message(
+    @PrimaryKey
+    val id: Long = 0L,
+    val chatId: Long = 0L,
     val content: String = "",
     val author: Author = Author.AI,
     val date: String = "",
     val mediaLink: String = ""
 )
 
-@Serializable  // Usando apenas para serialização temporária, remover quando trocar para Room
+
 enum class Author {
     LOAD, USER, AI
 }
