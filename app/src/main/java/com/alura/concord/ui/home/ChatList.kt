@@ -1,23 +1,29 @@
 package com.alura.concord.ui.home
 
+import android.widget.Space
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.alura.concord.R
 import com.alura.concord.data.Chat
 import com.alura.concord.data.chatListSample
@@ -35,13 +41,16 @@ fun ChatListScreen(
         AppBarChatList()
     }, floatingActionButton = {
         FloatingActionButton(
+            shape = RoundedCornerShape(100),
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             onClick = {
                 onClickSendNewMessage()
             },
         ) {
             Icon(
-                imageVector = Icons.Default.Add,
+                painter = painterResource(id = R.drawable.ic_action_message),
+                tint = Color.White,
+                modifier = Modifier.size(24.dp),
                 contentDescription = stringResource(R.string.send_new_messa)
             )
         }
@@ -61,8 +70,35 @@ fun ChatListScreen(
 fun AppBarChatList() {
     TopAppBar(
         title = {
-            Text(text = stringResource(id = R.string.app_name))
-        }
+            Text(text = stringResource(id = R.string.app_name), fontWeight = FontWeight.Medium)
+        },
+        actions = {
+
+            Row {
+                IconButton(
+                    onClick = { }
+                ) {
+                    Icon(
+                        Icons.Default.Search,
+                        tint = Color.White,
+                        contentDescription = null
+                    )
+                }
+
+                IconButton(onClick = { }) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        tint = Color.White,
+                        contentDescription = null
+                    )
+                }
+            }
+
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = Color.White
+        )
     )
 }
 
@@ -70,11 +106,13 @@ fun AppBarChatList() {
 fun ChatItem(
     chat: Chat, onClick: (Long) -> Unit
 ) {
-    Card(
-        modifier = Modifier.clickable { onClick(chat.id) },
+    Column(
+        Modifier
+            .clickable { onClick(chat.id) },
     ) {
+        Spacer(Modifier.height(10.dp))
         Row(
-            Modifier.padding(16.dp),
+            Modifier.padding(horizontal = 16.dp),
         ) {
             AsyncImage(
                 imageUrl = chat.profilePicOwner,
@@ -87,19 +125,38 @@ fun ChatItem(
                     .padding(start = 8.dp)
                     .align(Alignment.CenterVertically)
             ) {
-                Text(
-                    text = chat.owner,
-                    modifier = Modifier.fillMaxWidth(),
-                    fontWeight = FontWeight.Bold,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+
+                ) {
+                    Text(
+                        text = chat.owner,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(0.8f)
+                    )
+                    Text(
+                        text = chat.date,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.End,
+                        color = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.weight(0.2f)
+                    )
+                }
+
                 Text(
                     text = chat.lastMessage,
+                    color = MaterialTheme.colorScheme.outline,
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
         }
+        Spacer(Modifier.height(10.dp))
     }
 }
 

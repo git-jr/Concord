@@ -11,7 +11,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
-import com.alura.concord.ui.chat.ChatViewModel
+import com.alura.concord.ui.chat.MessageListViewModel
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
@@ -20,7 +20,7 @@ import java.util.*
 @Composable
  fun setResultFromImageSelection(
     context: Context,
-    viewModel: ChatViewModel,
+    viewModel: MessageListViewModel,
     navController: NavHostController
 ): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
     val pickMedia =
@@ -73,7 +73,7 @@ import java.util.*
 @Composable
  fun setResultFromFileSelection(
     context: Context,
-    viewModel: ChatViewModel,
+    viewModel: MessageListViewModel,
     navController: NavHostController
 ): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
     val pickMedia =

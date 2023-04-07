@@ -2,6 +2,7 @@ package com.alura.concord.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alura.concord.data.chatListSample
 import com.alura.concord.database.ChatDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,10 +26,14 @@ class ChatListViewModel @Inject constructor(
 
     private fun loadChats() {
         viewModelScope.launch {
-            chatDao.searchAll().collect { chatList ->
+            chatDao.getAll().collect { chatList ->
                 chatList?.let {
                     _uiState.value = _uiState.value.copy(
                         chats = chatList
+                    )
+                } ?: run {
+                    _uiState.value = _uiState.value.copy(
+                        chats = chatListSample
                     )
                 }
             }

@@ -2,7 +2,6 @@ package com.alura.concord.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-
 @Entity
 data class Message(
     @PrimaryKey

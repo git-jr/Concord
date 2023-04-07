@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.materialIcon
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,7 +41,7 @@ import com.alura.concord.ui.components.MessageItemUser
 
 @Composable
 fun ChatScreen(
-    state: ChatScreenUiState,
+    state: MessageScreenUiState,
     modifier: Modifier = Modifier,
     onSendMessage: () -> Unit = {},
     onShowSelectorFile: () -> Unit = {},
@@ -128,7 +127,7 @@ fun ChatScreen(
 
 @Composable
 private fun EntryTextBar(
-    state: ChatScreenUiState,
+    state: MessageScreenUiState,
     onShowSelectorFile: () -> Unit = {},
     onClickSendMessage: () -> Unit = {},
     onAcessSticker: () -> Unit = {},
@@ -253,7 +252,7 @@ private fun EntryTextBar(
 @Composable
 fun ChatScreenPreview() {
     ChatScreen(
-        ChatScreenUiState(
+        MessageScreenUiState(
             messages = messageListSample,
         )
     )

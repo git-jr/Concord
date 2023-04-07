@@ -16,9 +16,9 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class ChatViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(ChatScreenUiState())
-    val uiState: StateFlow<ChatScreenUiState>
+class MessageListViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow(MessageScreenUiState())
+    val uiState: StateFlow<MessageScreenUiState>
         get() = _uiState.asStateFlow()
 
     init {

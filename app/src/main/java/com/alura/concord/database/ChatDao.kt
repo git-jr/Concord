@@ -14,10 +14,10 @@ interface ChatDao {
     suspend fun insert(chat: Chat)
 
     @Query("SELECT * FROM Chat")
-    fun searchAll(): Flow<List<Chat>?>
+    fun getAll(): Flow<List<Chat>?>
 
     @Query("SELECT * FROM Chat WHERE id = :id")
-    fun searchById(id: Long): Flow<Chat?>
+    fun getById(id: Long): Flow<Chat?>
 
     @Query("DELETE FROM Chat WHERE id = :id")
     suspend fun delete(id: Long)
