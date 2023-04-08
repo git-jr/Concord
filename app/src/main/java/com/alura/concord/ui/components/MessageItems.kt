@@ -42,6 +42,7 @@ fun MessageItemUser(message: Message) {
     ) {
         Row(Modifier.padding(start = 50.dp)) {
             val hasImage = message.mediaLink.isNotEmpty()
+            val hasText = message.content.isNotEmpty()
             val intrinsicSizeLayout = if (hasImage) {
                 IntrinsicSize.Min
             } else {
@@ -71,16 +72,21 @@ fun MessageItemUser(message: Message) {
                         contentScale = ContentScale.FillWidth
                     )
                 }
-                Text(
-                    text = message.content,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+                if (hasText) {
+                    Text(
+                        text = message.content,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+
+                val verticalDatePadding = if (hasText) 0.dp else 8.dp
 
                 Row(
                     modifier =
                     Modifier.fillMaxWidth()
                         .padding(start = 20.dp, end = 4.dp)
+                        .padding(verticalDatePadding)
                         .offset(y = (-4).dp),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically

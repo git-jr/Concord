@@ -14,10 +14,10 @@ interface MessageDao {
     suspend fun insert(message: Message)
 
     @Query("SELECT * FROM Message")
-    fun searchAll(): Flow<List<Message>?>
+    fun getAll(): Flow<List<Message>?>
 
     @Query("SELECT * FROM Message WHERE id = :id")
-    fun searchById(id: Long): Flow<Message?>
+    fun getById(id: Long): Flow<Message?>
 
     @Query("DELETE FROM Message WHERE id = :id")
     suspend fun delete(id: Long)

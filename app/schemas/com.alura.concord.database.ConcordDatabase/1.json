@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "802afbd09a508cf90ddbdb8ee0f19347",
+    "identityHash": "250884f230942a5143a858a5e67f6b92",
     "entities": [
       {
         "tableName": "Chat",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `owner` TEXT NOT NULL, `profilePicOwner` TEXT NOT NULL, `lastMessage` TEXT NOT NULL, `date` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `owner` TEXT NOT NULL, `profilePicOwner` TEXT NOT NULL, `lastMessage` TEXT NOT NULL, `date` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -40,7 +40,7 @@
           }
         ],
         "primaryKey": {
-          "autoGenerate": false,
+          "autoGenerate": true,
           "columnNames": [
             "id"
           ]
@@ -50,7 +50,7 @@
       },
       {
         "tableName": "Message",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `chatId` INTEGER NOT NULL, `content` TEXT NOT NULL, `author` TEXT NOT NULL, `date` TEXT NOT NULL, `mediaLink` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `chatId` INTEGER NOT NULL, `content` TEXT NOT NULL, `author` TEXT NOT NULL, `date` TEXT NOT NULL, `mediaLink` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -90,7 +90,7 @@
           }
         ],
         "primaryKey": {
-          "autoGenerate": false,
+          "autoGenerate": true,
           "columnNames": [
             "id"
           ]
@@ -102,7 +102,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '802afbd09a508cf90ddbdb8ee0f19347')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '250884f230942a5143a858a5e67f6b92')"
     ]
   }
 }

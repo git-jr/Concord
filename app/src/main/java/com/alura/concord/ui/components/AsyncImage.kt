@@ -25,3 +25,20 @@ fun AsyncImage(
         contentDescription = description,
     )
 }
+
+@Composable
+fun AsyncImageProfile(
+    modifier: Modifier = Modifier,
+    imageUrl: String? = null,
+    description: String? = null,
+    contentScale: ContentScale = ContentScale.Crop,
+) {
+    AsyncImage(
+        modifier = modifier,
+        contentScale = contentScale,
+        model = ImageRequest.Builder(LocalContext.current).data(imageUrl).build(),
+        placeholder = painterResource(R.drawable.default_profile_picture),
+        error = painterResource(R.drawable.default_profile_picture),
+        contentDescription = description,
+    )
+}

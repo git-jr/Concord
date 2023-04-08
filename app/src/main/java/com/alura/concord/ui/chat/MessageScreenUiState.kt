@@ -7,7 +7,10 @@ data class MessageScreenUiState(
     val messageValue: String = "",
     val onMessageValueChange: (String) -> Unit = {},
     val onMediaInSelectionChange: (String) -> Unit = {},
-    val showError: Boolean = false,
+    val hasContentToSend: Boolean = false,
+    val onHasContentToSend:(Boolean) -> Unit = {},
     val error: String = "",
-    val mediaInSelection: String = ""
+    val mediaInSelection: String = "",
+    val profilePicOwner: String = "",
+    val ownerName: String = "",
 )

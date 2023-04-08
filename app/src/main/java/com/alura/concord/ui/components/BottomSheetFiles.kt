@@ -25,7 +25,6 @@ import com.alura.concord.R
 
 @Composable
 fun BottomSheetFiles(
-    onItemClick: () -> Unit = {},
     onSelectPhoto: () -> Unit = {},
     onSelectFile: () -> Unit = {},
 ) {
@@ -70,7 +69,7 @@ fun BottomSheetFiles(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 IconButton(
-                    onClick = onItemClick,
+                    onClick = { },
                     Modifier.background(color = Color("#7600bc".toColorInt()), shape = CircleShape)
                 ) {
                     Icon(

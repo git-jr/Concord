@@ -1,143 +1,120 @@
 package com.alura.concord.ui.chat
 
-import android.content.Context
-import androidx.datastore.preferences.core.edit
+import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alura.concord.data.Author
 import com.alura.concord.data.Message
 import com.alura.concord.data.messageListSample
-import com.alura.concord.database.preferences.PreferencesKey.RECENT_IMAGES
-import com.alura.concord.database.preferences.dataStoreFiles
+import com.alura.concord.database.MessageDao
+import com.alura.concord.messageChatIdArgument
+import com.alura.concord.util.CHAT_ID
 import com.alura.concord.util.getFormattedCurrentDate
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import javax.inject.Inject
 
-class MessageListViewModel : ViewModel() {
+@HiltViewModel
+class MessageListViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
+    private val messageDao: MessageDao
+) : ViewModel() {
     private val _uiState = MutableStateFlow(MessageScreenUiState())
     val uiState: StateFlow<MessageScreenUiState>
         get() = _uiState.asStateFlow()
 
+//    private val chatId = savedStateHandle[messageChatIdArgument]
+    private var chatId = savedStateHandle.get<Long>(messageChatIdArgument) ?: 0L
+
     init {
+
+//        initWithSamples()
+        getMessages()
+
         _uiState.update { state ->
             state.copy(
                 onMessageValueChange = {
                     _uiState.value = _uiState.value.copy(
                         messageValue = it
                     )
+
+                    _uiState.value = _uiState.value.copy(
+                        hasContentToSend = (it.isNotEmpty() || _uiState.value.mediaInSelection.isNotEmpty())
+                    )
                 },
+
                 onMediaInSelectionChange = {
                     _uiState.value = _uiState.value.copy(
                         mediaInSelection = it
+                    )
+                    _uiState.value = _uiState.value.copy(
+                        hasContentToSend = (it.isNotEmpty() || _uiState.value.messageValue.isNotEmpty())
                     )
                 },
             )
         }
     }
 
-    fun loadSampleMessages(context: Context) {
-//        viewModelScope.launch {
-//            readArrayStringFromDataStore(context).collect {
-//                _uiState.value = _uiState.value.copy(
-//                    messages = it,
-//                )
-//            }
-//        }
-
+    fun initWithSamples() {
         _uiState.value = _uiState.value.copy(
             messages = messageListSample,
         )
     }
 
-    fun sendMessage() {
-        with(_uiState) {
-            //val messageValue = value.messageValue
-            // updateUi()
-            //searchResponse(messageValue)
-        }
-    }
-
-    fun saveInDataStore(context: Context) {
-        updateUi()
+    fun getMessages() {
         viewModelScope.launch {
-            context.dataStoreFiles.edit { preferences ->
-                val currentArrayMesssage = preferences[RECENT_IMAGES] ?: "[]"
-                val currentMessageSerialized =
-                    Json.decodeFromString<List<Message>>(currentArrayMesssage.toString())
-                        .toMutableList()
-
-
-                val userMessage = Message(
-                    content = _uiState.value.messageValue,
-                    author = Author.USER,
-                    mediaLink = _uiState.value.mediaInSelection,
-                    date = getFormattedCurrentDate()
-
-                )
-
-                currentMessageSerialized.add(userMessage)
-
-                val newArrayString = Json.encodeToString(currentMessageSerialized)
-                preferences[RECENT_IMAGES] = newArrayString
-
-                _uiState.value = _uiState.value.copy(
-                    messageValue = "", mediaInSelection = ""
-                )
+            messageDao.getAll().collect { messages ->
+                messages?.let {
+                    _uiState.value = _uiState.value.copy(
+                        messages = it
+                    )
+                }
             }
         }
     }
 
-    private fun searchResponse(messageValue: String) {
-    }
-
-    private fun updateUi() {
+    suspend fun sendMessage() {
         with(_uiState) {
+            if (!value.hasContentToSend) {
+                return
+            }
+
             val userMessage = Message(
                 content = value.messageValue,
                 author = Author.USER,
+                chatId = chatId,
                 mediaLink = value.mediaInSelection,
-                date = getFormattedCurrentDate()
+                date = getFormattedCurrentDate(),
             )
-
-            value = value.copy(
-                messages = value.messages.plus(
-                    listOf(
-                        userMessage, Message(author = Author.LOAD)
-                    )
-                ),
-            )
+            userMessage.let { messageDao.insert(it) }
+            cleanFields()
         }
     }
 
-    fun updateshowError() {
+    private fun cleanFields() {
         _uiState.value = _uiState.value.copy(
-            showError = false, error = ""
+            messageValue = "", mediaInSelection = "", hasContentToSend = false
         )
     }
 
-
-    private fun readArrayStringFromDataStore(context: Context): Flow<List<Message>> {
-        return context.dataStoreFiles.data.map { preferences ->
-            val messageArray: String = preferences[RECENT_IMAGES] ?: "[]"
-            val messageList = Json.decodeFromString<List<Message>>(messageArray)
-            messageList
-        }
-    }
 
     fun loadMediaInScreen(
         uri: String
     ) {
-        _uiState.value = _uiState.value.copy(
-            mediaInSelection = uri
-        )
+        _uiState.value.onMediaInSelectionChange(uri)
     }
 
     fun deselectMedia() {
         _uiState.value = _uiState.value.copy(
-            mediaInSelection = ""
+            mediaInSelection = "",
         )
     }
+
+    fun setChatId(chatId: Long) {
+         this.chatId = chatId
+    }
+
+
 }

@@ -1,6 +1,5 @@
 package com.alura.concord.ui.home
 
-import android.widget.Space
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,31 +33,33 @@ import com.alura.concord.ui.theme.ConcordTheme
 fun ChatListScreen(
     state: ChatListUiState,
     modifier: Modifier = Modifier,
-    onClickOpenChat: (Long) -> Unit = {},
-    onClickSendNewMessage: () -> Unit = {}
+    onOpenChat: (Long) -> Unit = {},
+    onSendNewMessage: () -> Unit = {}
 ) {
-    Scaffold(topBar = {
-        AppBarChatList()
-    }, floatingActionButton = {
-        FloatingActionButton(
-            shape = RoundedCornerShape(100),
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            onClick = {
-                onClickSendNewMessage()
-            },
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_action_message),
-                tint = Color.White,
-                modifier = Modifier.size(24.dp),
-                contentDescription = stringResource(R.string.send_new_messa)
-            )
-        }
-    }) { paddingValues ->
+    Scaffold(
+        topBar = {
+            AppBarChatList()
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                shape = CircleShape,
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                onClick = {
+                    onSendNewMessage()
+                },
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_action_message),
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp),
+                    contentDescription = stringResource(R.string.send_new_messa)
+                )
+            }
+        }) { paddingValues ->
         LazyColumn(modifier.padding(paddingValues)) {
             items(state.chats) { chat ->
                 ChatItem(chat) { chatId ->
-                    onClickOpenChat(chatId)
+                    onOpenChat(chatId)
                 }
             }
         }
@@ -73,7 +74,6 @@ fun AppBarChatList() {
             Text(text = stringResource(id = R.string.app_name), fontWeight = FontWeight.Medium)
         },
         actions = {
-
             Row {
                 IconButton(
                     onClick = { }

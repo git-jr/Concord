@@ -2,9 +2,10 @@ package com.alura.concord.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+
 @Entity
 data class Message(
-    @PrimaryKey
+    @PrimaryKey (autoGenerate = true)
     val id: Long = 0L,
     val chatId: Long = 0L,
     val content: String = "",
@@ -15,5 +16,5 @@ data class Message(
 
 
 enum class Author {
-    LOAD, USER, AI
+    USER, AI
 }

@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit
 
 @Composable
 fun BottomSheetStickers(
-    onSelectedSticker: (String) -> Unit = {},
+    onSelectedSticker: (Uri) -> Unit = {},
 ) {
     Column(
         Modifier
@@ -56,7 +56,7 @@ fun BottomSheetStickers(
                         .fillMaxSize()
                         .padding(8.dp)
                         .background(Color.White)
-                        .clickable { onSelectedSticker(item.name) }
+                        .clickable { onSelectedSticker(item.contentUri) }
                 ) {
 
                     coil.compose.AsyncImage(

@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class Chat(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
     val owner: String = "",
     val profilePicOwner: String = "",

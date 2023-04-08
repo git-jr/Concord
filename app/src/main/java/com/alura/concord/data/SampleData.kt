@@ -2,9 +2,8 @@ package com.alura.concord.data
 
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import com.alura.concord.util.getRandomDate
-import kotlin.random.Random
 
-val messageListSample = listOf(
+val messageListSample = mutableListOf(
     Message(
         content = "Olá",
         author = Author.USER,

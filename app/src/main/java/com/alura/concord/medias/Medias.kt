@@ -10,6 +10,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.alura.concord.ui.chat.MessageListViewModel
 import java.io.File
@@ -18,11 +21,12 @@ import java.util.*
 
 
 @Composable
- fun setResultFromImageSelection(
-    context: Context,
+fun setResultFromImageSelection(
     viewModel: MessageListViewModel,
-    navController: NavHostController
+    onBack: () -> Unit = {}
 ): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
+    val context = LocalContext.current
+
     val pickMedia =
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
@@ -60,8 +64,7 @@ import java.util.*
                         viewModel.loadMediaInScreen(file.path)
                     }
                 }
-
-                navController.navigateUp()
+                onBack()
                 Log.d("PhotoPicker", "Selected URI: $uri")
             } else {
                 Log.d("PhotoPicker", "No media selected")
@@ -71,11 +74,11 @@ import java.util.*
 }
 
 @Composable
- fun setResultFromFileSelection(
-    context: Context,
+fun setResultFromFileSelection(
     viewModel: MessageListViewModel,
-    navController: NavHostController
+    onBack: () -> Unit = {}
 ): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
+    val context = LocalContext.current
     val pickMedia =
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
@@ -97,7 +100,7 @@ import java.util.*
                     }
                 }
 
-                navController.navigateUp()
+                onBack()
                 Log.d("PhotoPicker", "Selected URI: $uri")
             } else {
                 Log.d("PhotoPicker", "No media selected")
@@ -107,7 +110,7 @@ import java.util.*
 }
 
 
- fun createCopyFromInternalStorage(context: Context, uri: Uri): File? {
+fun createCopyFromInternalStorage(context: Context, uri: Uri): File? {
     // Obtenha um InputStream a partir da Uri usando o ContentResolver
     val inputStream = context.contentResolver.openInputStream(uri)
 
@@ -141,7 +144,7 @@ import java.util.*
     return null
 }
 
- fun launchPickVisualMedia(
+fun launchPickVisualMedia(
     pickMedia: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>,
     mimeType: String = "*/*"
 ) {

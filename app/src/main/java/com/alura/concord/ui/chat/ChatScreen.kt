@@ -9,10 +9,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +31,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,10 +39,7 @@ import androidx.core.graphics.toColorInt
 import com.alura.concord.R
 import com.alura.concord.data.Author
 import com.alura.concord.data.messageListSample
-import com.alura.concord.ui.components.AsyncImage
-import com.alura.concord.ui.components.MessageItemAi
-import com.alura.concord.ui.components.MessageItemLoad
-import com.alura.concord.ui.components.MessageItemUser
+import com.alura.concord.ui.components.*
 
 @Composable
 fun ChatScreen(
@@ -47,8 +49,12 @@ fun ChatScreen(
     onShowSelectorFile: () -> Unit = {},
     onShowSelectorStickers: () -> Unit = {},
     onDeselectMedia: () -> Unit = {},
+    onBack: () -> Unit = {},
 ) {
-    Scaffold { paddingValues ->
+    Scaffold(
+        topBar = {
+            AppBarChatScreen(state = state, onBackClick = onBack)
+        }) { paddingValues ->
         Column(
             modifier
                 .background(MaterialTheme.colorScheme.onPrimaryContainer)
@@ -69,10 +75,6 @@ fun ChatScreen(
                         Author.USER -> {
                             MessageItemUser(it)
                         }
-
-                        Author.LOAD -> {
-                            MessageItemLoad()
-                        }
                     }
 
                 }
@@ -80,37 +82,7 @@ fun ChatScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             if (state.mediaInSelection.isNotEmpty()) {
-                Box(
-                    contentAlignment = Alignment.BottomEnd,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.onPrimaryContainer),
-                ) {
-                    AsyncImage(
-                        modifier = Modifier.size(150.dp).padding(8.dp).clip(RoundedCornerShape(5)),
-                        imageUrl = state.mediaInSelection
-                    )
-                    IconButton(
-                        onClick = onDeselectMedia,
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .align(Alignment.TopEnd)
-                            .alpha(0.5f)
-                            .clickable {}
-                            .shadow(1.dp, RoundedCornerShape(100))
-                            .background(
-                                Color.Black,
-                                RoundedCornerShape(100)
-                            ).size(22.dp),
-                    ) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = stringResource(R.string.icon_message_or_mic),
-                            modifier.padding(4.dp),
-                            tint = Color.White
-                        )
-                    }
-                }
+                SelectedMediaContainer(state, onDeselectMedia)
             }
 
             EntryTextBar(
@@ -124,6 +96,107 @@ fun ChatScreen(
     }
 }
 
+@Composable
+private fun SelectedMediaContainer(
+    state: MessageScreenUiState,
+    onDeselectMedia: () -> Unit,
+) {
+    Box(
+        contentAlignment = Alignment.BottomEnd,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.onPrimaryContainer),
+    ) {
+        AsyncImage(
+            modifier = Modifier.size(150.dp).padding(8.dp).clip(RoundedCornerShape(5)),
+            imageUrl = state.mediaInSelection
+        )
+        IconButton(
+            onClick = {
+                onDeselectMedia()
+            },
+            modifier = Modifier
+                .padding(12.dp)
+                .align(Alignment.TopEnd)
+                .alpha(0.5f)
+                .clickable {}
+                .shadow(1.dp, RoundedCornerShape(100))
+                .background(
+                    Color.Black,
+                    CircleShape
+                ).size(22.dp),
+        ) {
+            Icon(
+                Icons.Default.Close,
+                contentDescription = stringResource(R.string.icon_message_or_mic),
+                modifier = Modifier.padding(4.dp),
+                tint = Color.White
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppBarChatScreen(
+    state: MessageScreenUiState, onBackClick: () -> Unit = {}
+) {
+    TopAppBar(
+        navigationIcon = {
+            Row(
+                modifier = Modifier.clickable {
+                    onBackClick()
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Icon(
+                    Icons.Default.ArrowBack,
+                    tint = Color.White,
+                    contentDescription = null
+                )
+
+                AsyncImageProfile(
+                    imageUrl = state.profilePicOwner,
+                    modifier = Modifier
+                        .padding(end = 4.dp)
+                        .size(32.dp)
+                        .clip(CircleShape),
+                )
+            }
+        },
+        title = {
+            Text(text = state.ownerName, fontWeight = FontWeight.Medium)
+
+        },
+        actions = {
+            Row {
+                IconButton(
+                    onClick = { }
+                ) {
+                    Icon(
+                        Icons.Default.Search,
+                        tint = Color.White,
+                        contentDescription = null
+                    )
+                }
+
+                IconButton(onClick = { }) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        tint = Color.White,
+                        contentDescription = null
+                    )
+                }
+            }
+
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = Color.White
+        )
+    )
+}
 
 @Composable
 private fun EntryTextBar(
@@ -133,7 +206,8 @@ private fun EntryTextBar(
     onAcessSticker: () -> Unit = {},
 ) {
     val barHeight = 56.dp
-    val stateMessageIsEmpty = state.messageValue.isEmpty()
+    val hasContentToSend = state.hasContentToSend
+//    val stateMessageIsEmpty = state.messageValue.isEmpty()
 
     Row(
         modifier = Modifier
@@ -214,7 +288,7 @@ private fun EntryTextBar(
 
         IconButton(
             onClick = {
-                if (!stateMessageIsEmpty) {
+                if (hasContentToSend) {
                     onClickSendMessage()
                 }
             },
@@ -229,13 +303,13 @@ private fun EntryTextBar(
             val micIcon = painterResource(id = R.drawable.ic_action_mic)
             val sendIcon = painterResource(id = R.drawable.ic_action_send)
 
-            val transition = updateTransition(stateMessageIsEmpty, label = "Crossfade Transition")
-            val iconSize by transition.animateDp(label = "Icon Size") { if (it) 24.dp else 24.dp }
-            val iconAlpha by transition.animateFloat(label = "Icon Alpha") { if (it) 1f else 1f }
+            val transition = updateTransition(hasContentToSend, label = "Crossfade transition")
+            val iconSize by transition.animateDp(label = "Icon size") { if (it) 24.dp else 24.dp }
+            val iconAlpha by transition.animateFloat(label = "Icon alpha") { if (it) 1f else 1f }
 
-            Crossfade(targetState = stateMessageIsEmpty) { messageIsEmpty ->
+            Crossfade(targetState = hasContentToSend) { hasContent ->
                 Icon(
-                    if (messageIsEmpty) micIcon else sendIcon,
+                    if (hasContent) sendIcon else micIcon,
                     stringResource(R.string.icon_message_or_mic),
                     tint = Color.White,
                     modifier = Modifier
