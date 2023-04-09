@@ -4,4 +4,5 @@
     <string name="message">Mensagem</string>
     <string name="icon_message_or_mic">Mensagem ou Microfone</string>
     <string name="send_new_messa">Enviar nova mensagem</string>
+    <string name="media">Mídia</string>
 </resources>

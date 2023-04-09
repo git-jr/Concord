@@ -1,16 +1,16 @@
 package com.alura.concord.ui.chat
 
-import android.util.Log
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alura.concord.R
 import com.alura.concord.data.Author
 import com.alura.concord.data.Message
 import com.alura.concord.data.messageListSample
 import com.alura.concord.database.ChatDao
 import com.alura.concord.database.MessageDao
 import com.alura.concord.messageChatIdArgument
-import com.alura.concord.util.CHAT_ID
 import com.alura.concord.util.getFormattedCurrentDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -21,8 +21,9 @@ import javax.inject.Inject
 class MessageListViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val messageDao: MessageDao,
-    private val chatDao: ChatDao
-) : ViewModel() {
+    private val chatDao: ChatDao,
+    private val application: Application,
+) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(MessageScreenUiState())
     val uiState: StateFlow<MessageScreenUiState>
         get() = _uiState.asStateFlow()
@@ -33,7 +34,7 @@ class MessageListViewModel @Inject constructor(
     init {
 
 //        initWithSamples()
-        getMessages()
+        loadMessages()
 
         _uiState.update { state ->
             state.copy(
@@ -65,9 +66,9 @@ class MessageListViewModel @Inject constructor(
         )
     }
 
-    fun getMessages() {
+    fun loadMessages() {
         viewModelScope.launch {
-            messageDao.getAll().collect { messages ->
+            messageDao.getByChatId(chatId).collect { messages ->
                 messages?.let {
                     _uiState.value = _uiState.value.copy(
                         messages = it
@@ -90,9 +91,23 @@ class MessageListViewModel @Inject constructor(
                 mediaLink = value.mediaInSelection,
                 date = getFormattedCurrentDate(),
             )
-            userMessage.let { messageDao.insert(it) }
+            updateLastMessageChat(userMessage)
             cleanFields()
         }
+    }
+
+    private suspend fun MutableStateFlow<MessageScreenUiState>.updateLastMessageChat(
+        userMessage: Message
+    ) {
+        userMessage.let { messageDao.insert(it) }
+        val lastMessage =
+            value.messageValue.ifEmpty {
+                application.applicationContext.getString(
+                    R.string.media
+                )
+            }
+
+        chatDao.updateLastMessage(chatId, lastMessage)
     }
 
     private fun cleanFields() {
@@ -118,9 +133,10 @@ class MessageListViewModel @Inject constructor(
         this.chatId = chatId
 
         viewModelScope.launch {
+            loadMessages()
+
             val chat = chatDao.getById(chatId).first()
-            val ownerName = chat
-            ownerName?.let {
+            chat?.let {
                 _uiState.value = _uiState.value.copy(
                     ownerName = chat.owner,
                     profilePicOwner = chat.profilePicOwner
