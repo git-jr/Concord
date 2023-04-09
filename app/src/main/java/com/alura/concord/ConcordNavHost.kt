@@ -1,11 +1,16 @@
 package com.alura.concord
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -27,6 +32,8 @@ import com.alura.concord.ui.home.ChatListViewModel
 import com.google.accompanist.navigation.material.*
 import kotlinx.coroutines.launch
 
+private lateinit var requestPermissionLauncher: ManagedActivityResultLauncher<String, Boolean>
+
 @OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
 fun ConcordNavHost(
@@ -34,10 +41,28 @@ fun ConcordNavHost(
     bottomSheetNavigator: BottomSheetNavigator = rememberBottomSheetNavigator(),
     navController: NavHostController = rememberNavController(bottomSheetNavigator)
 ) {
+
+    val viewModel = hiltViewModel<MessageListViewModel>()
+
+    val context = LocalContext.current
+
+    requestPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                viewModel.setImagePerssion(true)
+                context.showMessage("Permissões concedidas")
+                // A permissão foi concedida. Agora você pode acessar os arquivos protegidos pelo sistema.
+            } else {
+                navController.navigateUp()
+                context.showMessage("Permissões ainda não concedidas")
+                // A permissão não foi concedida. Você precisa informar o usuário para conceder a permissão para o aplicativo.
+            }
+        }
+
+
 //    val bottomSheetNavigator: BottomSheetNavigator = rememberBottomSheetNavigator()
 //    val navController: NavHostController = rememberNavController(bottomSheetNavigator)
 
-    val viewModel = hiltViewModel<MessageListViewModel>()
 
     ModalBottomSheetLayout(
         bottomSheetNavigator = bottomSheetNavigator,
@@ -135,17 +160,58 @@ private fun NavGraphBuilder.chatGraph(
     bottomSheet(ConcordRoute.BOTTOMSHEET_STICKER) {
         val context = LocalContext.current
         val coroutineScope = rememberCoroutineScope()
-        BottomSheetStickers(onSelectedSticker = {
-            viewModel.loadMediaInScreen(uri = it.toString())
-            coroutineScope.launch {
-                viewModel.sendMessage()
-            }
-            // context.showMessage(it)
-            // navController.navigate(ConcordRoute.BOTTOMSHEETSTICKER)
-            onBack()
+        val state = viewModel.uiState.collectAsState()
+
+        requestCorrectPermission(context, onBack = {
+            viewModel.setImagePerssion(true)
         })
+
+        if (state.value.imagePermission) {
+            BottomSheetStickers(
+                onSelectedSticker = {
+                    viewModel.loadMediaInScreen(uri = it.toString())
+                    coroutineScope.launch {
+                        viewModel.sendMessage()
+                    }
+                    // context.showMessage(it)
+                    // navController.navigate(ConcordRoute.BOTTOMSHEETSTICKER)
+                    onBack()
+                })
+        }
     }
 }
+
+
+private fun requestCorrectPermission(context: Context, onBack: () -> Unit) {
+
+    when {
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_MEDIA_IMAGES
+        ) == PackageManager.PERMISSION_GRANTED -> {
+            // You can use the API that requires the permission.
+            onBack()
+            // context.showMessage("permissões já concedidas")
+        }
+        ActivityCompat.shouldShowRequestPermissionRationale(
+            context as MainActivity,
+            Manifest.permission.READ_MEDIA_IMAGES
+        ) -> {
+            requestPermissionLauncher.launch(
+                Manifest.permission.READ_MEDIA_IMAGES
+            )
+            context.showMessage("Aceite as permissões para usar essa função")
+        }
+        else -> {
+            // You can directly ask for the permission.
+            // The registered ActivityResultCallback gets the result of this request.
+            requestPermissionLauncher.launch(
+                Manifest.permission.READ_MEDIA_IMAGES
+            )
+        }
+    }
+}
+
 
 private fun NavGraphBuilder.chatListGraph(
     onOpenChat: (Long) -> Unit = {},
@@ -176,3 +242,4 @@ fun NavHostController.navigateToChatScreen(
     navigate("${messageChatRoute}/$chatId", navOptions)
 //    navigate("${ConcordRoute.MESSAGE_CHAT}/$chatId")
 }
+

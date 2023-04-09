@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.alura.concord.data.Author
 import com.alura.concord.data.Message
 import com.alura.concord.data.messageListSample
+import com.alura.concord.database.ChatDao
 import com.alura.concord.database.MessageDao
 import com.alura.concord.messageChatIdArgument
 import com.alura.concord.util.CHAT_ID
@@ -19,13 +20,14 @@ import javax.inject.Inject
 @HiltViewModel
 class MessageListViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val messageDao: MessageDao
+    private val messageDao: MessageDao,
+    private val chatDao: ChatDao
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MessageScreenUiState())
     val uiState: StateFlow<MessageScreenUiState>
         get() = _uiState.asStateFlow()
 
-//    private val chatId = savedStateHandle[messageChatIdArgument]
+    //    private val chatId = savedStateHandle[messageChatIdArgument]
     private var chatId = savedStateHandle.get<Long>(messageChatIdArgument) ?: 0L
 
     init {
@@ -113,7 +115,24 @@ class MessageListViewModel @Inject constructor(
     }
 
     fun setChatId(chatId: Long) {
-         this.chatId = chatId
+        this.chatId = chatId
+
+        viewModelScope.launch {
+            val chat = chatDao.getById(chatId).first()
+            val ownerName = chat
+            ownerName?.let {
+                _uiState.value = _uiState.value.copy(
+                    ownerName = chat.owner,
+                    profilePicOwner = chat.profilePicOwner
+                )
+            }
+        }
+    }
+
+    fun setImagePerssion(value: Boolean) {
+        _uiState.value = _uiState.value.copy(
+            imagePermission = value,
+        )
     }
 
 
