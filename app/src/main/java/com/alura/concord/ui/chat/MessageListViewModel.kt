@@ -1,9 +1,9 @@
 package com.alura.concord.ui.chat
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alura.concord.ConcordApplication
 import com.alura.concord.R
 import com.alura.concord.data.Author
 import com.alura.concord.data.Message
@@ -22,8 +22,8 @@ class MessageListViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val messageDao: MessageDao,
     private val chatDao: ChatDao,
-    private val application: Application,
-) : AndroidViewModel(application) {
+    private val application: ConcordApplication,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(MessageScreenUiState())
     val uiState: StateFlow<MessageScreenUiState>
         get() = _uiState.asStateFlow()
@@ -96,12 +96,12 @@ class MessageListViewModel @Inject constructor(
         }
     }
 
-    private suspend fun MutableStateFlow<MessageScreenUiState>.updateLastMessageChat(
+    private suspend fun updateLastMessageChat(
         userMessage: Message
     ) {
         userMessage.let { messageDao.insert(it) }
         val lastMessage =
-            value.messageValue.ifEmpty {
+            _uiState.value.messageValue.ifEmpty {
                 application.applicationContext.getString(
                     R.string.media
                 )
@@ -112,7 +112,9 @@ class MessageListViewModel @Inject constructor(
 
     private fun cleanFields() {
         _uiState.value = _uiState.value.copy(
-            messageValue = "", mediaInSelection = "", hasContentToSend = false
+            messageValue = "",
+            mediaInSelection = "",
+            hasContentToSend = false
         )
     }
 

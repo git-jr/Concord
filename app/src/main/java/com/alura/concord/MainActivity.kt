@@ -18,30 +18,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             ConcordTheme {
                 ConcordNavHost()
-
-//
-////                val viewModel: MessageListViewModel by viewModels()
-////                val state by viewModel.uiState.collectAsState()
-//
-//
-////                val viewModel = ViewModelProvider(this)[MessageListViewModel::class.java]
-////                val state by viewModel.uiState.collectAsState()
-//
-//
-////                val viewModel = hiltViewModel<MessageListViewModel>()
-//                val viewModel: MessageListViewModel by viewModels()
-//
-//                val state by viewModel.uiState.collectAsState()
-//
-////                if (state.mediaInSelection.isNotEmpty()) {
-////                    LocalContext.current.showMessage("Mudou aqui no iniicio")
-////                }
-//                val context = LocalContext.current
-//                LaunchedEffect(state.messageValue) {
-//                    context.showMessage("Mudou aqui no iniicio")
-//                }
-//
-
             }
         }
     }
