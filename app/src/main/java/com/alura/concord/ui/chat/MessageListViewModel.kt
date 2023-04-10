@@ -10,7 +10,7 @@ import com.alura.concord.data.Message
 import com.alura.concord.data.messageListSample
 import com.alura.concord.database.ChatDao
 import com.alura.concord.database.MessageDao
-import com.alura.concord.messageChatIdArgument
+import com.alura.concord.navigation.messageChatIdArgument
 import com.alura.concord.util.getFormattedCurrentDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*

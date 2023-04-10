@@ -42,7 +42,7 @@ import com.alura.concord.data.messageListSample
 import com.alura.concord.ui.components.*
 
 @Composable
-fun ChatScreen(
+fun MessageScreen(
     state: MessageScreenUiState,
     modifier: Modifier = Modifier,
     onSendMessage: () -> Unit = {},
@@ -325,7 +325,7 @@ private fun EntryTextBar(
 @Preview
 @Composable
 fun ChatScreenPreview() {
-    ChatScreen(
+    MessageScreen(
         MessageScreenUiState(
             messages = messageListSample,
         )
