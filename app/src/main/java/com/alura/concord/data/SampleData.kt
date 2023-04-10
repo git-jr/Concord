@@ -126,4 +126,23 @@ val chatListSample = mutableListOf(
         date = "18:45"
     )
 )
+val documentListSample = mutableListOf(
+    Document(
+        id = 1L,
+        name = "Documento em PDF",
+        size = "42 kb",
+        icon = "",
+        date = "02/02/2020",
+        path = ""
+    ),
+
+    Document(
+        id = 1L,
+        name = "Documento em Docx",
+        size = "1,5 MB",
+        icon = "",
+        date = "12/12/2012",
+        path = ""
+    ),
+)
 

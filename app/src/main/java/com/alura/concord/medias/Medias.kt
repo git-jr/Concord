@@ -4,16 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavHostController
 import com.alura.concord.ui.chat.MessageListViewModel
 import java.io.File
 import java.io.FileOutputStream
@@ -22,24 +20,16 @@ import java.util.*
 
 @Composable
 fun setResultFromImageSelection(
-    viewModel: MessageListViewModel,
+    onSelectedFile: (String, String?) -> Unit,
     onBack: () -> Unit = {}
-): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
+): ManagedActivityResultLauncher<Array<String>, Uri?> {
     val context = LocalContext.current
 
     val pickMedia =
-        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) {
                 createCopyFromInternalStorage(context, uri)
                 try {
-//                    val contentResolver = context.contentResolver
-//                    val takeFlags =
-//                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-//
-//                    contentResolver.takePersistableUriPermission(uri, takeFlags)
-//                    viewModel.loadMediaInScreen(uri.toString())
-
-
                     var filePath: String? = null
                     if (uri.scheme == "content") { // For PhotoPicker in recents versions from Android
                         val cursor = context.contentResolver.query(uri, null, null, null, null)
@@ -53,7 +43,10 @@ fun setResultFromImageSelection(
                         filePath = uri.path
                     }
 
-                    filePath?.let { viewModel.loadMediaInScreen(it) }
+                    filePath?.let {
+                        val fileName = getFileNameFromUri(context, uri)
+                        onSelectedFile(it, fileName)
+                    }
                     Log.i("PhotoPicker", "Sucesso ao tentar persistir a URI ")
                 } catch (e: Exception) {
                     // errors from Android 13
@@ -61,7 +54,8 @@ fun setResultFromImageSelection(
 
                     val file = createCopyFromInternalStorage(context, uri)
                     file?.let {
-                        viewModel.loadMediaInScreen(file.path)
+                        val fileName = getFileNameFromUri(context, uri)
+                        onSelectedFile(file.path, fileName)
                     }
                 }
                 onBack()
@@ -69,13 +63,16 @@ fun setResultFromImageSelection(
             } else {
                 Log.d("PhotoPicker", "No media selected")
             }
+
         }
+
+
     return pickMedia
 }
 
 @Composable
 fun setResultFromFileSelection(
-    viewModel: MessageListViewModel,
+    onSelectedImage: (String) -> Unit = {},
     onBack: () -> Unit = {}
 ): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
     val context = LocalContext.current
@@ -88,7 +85,7 @@ fun setResultFromFileSelection(
                         Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
                     contentResolver.takePersistableUriPermission(uri, takeFlags)
-                    //viewModel.loadMediaInScreen(uri.toString())
+                    onSelectedImage(uri.toString())
 
                 } catch (e: Exception) {
                     // errors from Android 13
@@ -96,7 +93,7 @@ fun setResultFromFileSelection(
 
                     val file = createCopyFromInternalStorage(context, uri)
                     file?.let {
-                        viewModel.loadMediaInScreen(file.path)
+                        onSelectedImage(file.path)
                     }
                 }
 
@@ -155,4 +152,21 @@ fun launchPickVisualMedia(
             )
         )
     )
+}
+
+fun launchPickDocumentMedia(
+    pickMediaFiles: ManagedActivityResultLauncher<Array<String>, Uri?>
+) {
+    pickMediaFiles.launch(arrayOf("*/*"))
+}
+
+fun getFileNameFromUri(context: Context, uri: Uri): String? {
+    var fileName: String? = null
+    val cursor = context.contentResolver.query(uri, null, null, null, null)
+    cursor?.use {
+        if (it.moveToFirst()) {
+            fileName = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME) ?: 0)
+        }
+    }
+    return fileName
 }

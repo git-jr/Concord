@@ -3,6 +3,7 @@ package com.alura.concord
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,12 +20,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.alura.concord.extensions.showMessage
+import com.alura.concord.medias.launchPickDocumentMedia
 import com.alura.concord.medias.launchPickVisualMedia
 import com.alura.concord.medias.setResultFromFileSelection
 import com.alura.concord.medias.setResultFromImageSelection
 import com.alura.concord.navigation.ConcordRoute
 import com.alura.concord.ui.chat.ChatScreen
 import com.alura.concord.ui.chat.MessageListViewModel
+import com.alura.concord.ui.chat.files.DocumentListScreen
+import com.alura.concord.ui.chat.files.DocumentListViewModel
 import com.alura.concord.ui.components.BottomSheetFiles
 import com.alura.concord.ui.components.BottomSheetStickers
 import com.alura.concord.ui.home.ChatListScreen
@@ -76,10 +80,8 @@ fun ConcordNavHost(
             chatListGraph(
                 onOpenChat = { chatId ->
                     navController.navigateToChatScreen(chatId)
-//                    navController.navigate(ConcordRoute.MESSAGE_CHAT)
                 },
                 onSendNewMessage = {
-
                 }
             )
 
@@ -96,6 +98,24 @@ fun ConcordNavHost(
                 viewModel = viewModel
             )
         }
+    }
+}
+
+private fun NavGraphBuilder.chatListGraph(
+    onOpenChat: (Long) -> Unit = {},
+    onSendNewMessage: () -> Unit = {},
+) {
+    composable(ConcordRoute.CHAT_LIST) {
+        val chatViewModel = hiltViewModel<ChatListViewModel>()
+        val chatState by chatViewModel.uiState.collectAsState()
+
+        ChatListScreen(
+            state = chatState,
+            onOpenChat = {
+                onOpenChat(it)
+            },
+            onSendNewMessage = onSendNewMessage,
+        )
     }
 }
 
@@ -138,21 +158,39 @@ private fun NavGraphBuilder.chatGraph(
     }
 
     bottomSheet(ConcordRoute.BOTTOMSHEET_FILE) {
+        val state = viewModel.uiState.collectAsState()
+        val context = LocalContext.current
 
-        val pickMediaImage =
+        val coroutineScope = rememberCoroutineScope()
+        val pickMediaFiles =
             setResultFromImageSelection(
-                viewModel,
+                onSelectedFile = { path, name ->
+                    if (state.value.messageValue.isEmpty()) {
+                        state.value.onMessageValueChange(
+                            name ?: context.getString(R.string.document)
+                        )
+                    }
+                    viewModel.loadMediaInScreen(uri = path)
+                    coroutineScope.launch {
+                        viewModel.sendMessage()
+                    }
+                },
                 onBack = onBack
             )
-        val pickMediaFiles =
-            setResultFromFileSelection(viewModel, onBack = onBack)
+        val pickMediaImage =
+            setResultFromFileSelection(
+                onSelectedImage = {
+                    viewModel.loadMediaInScreen(uri = it)
+                },
+                onBack = onBack
+            )
 
         BottomSheetFiles(
             onSelectPhoto = {
                 launchPickVisualMedia(pickMediaImage, "image/*")
             },
             onSelectFile = {
-                launchPickVisualMedia(pickMediaFiles)
+                launchPickDocumentMedia(pickMediaFiles)
             }
         )
     }
@@ -179,6 +217,19 @@ private fun NavGraphBuilder.chatGraph(
                 })
         }
     }
+
+    composable(documentListRoute) {
+        val documentListViewModel = hiltViewModel<DocumentListViewModel>()
+        val documentState by documentListViewModel.uiState.collectAsState()
+        val context = LocalContext.current
+
+        DocumentListScreen(
+            state = documentState,
+            onOpenDocument = {
+                context.showMessage("Abrir documento $it")
+            }
+        )
+    }
 }
 
 
@@ -189,47 +240,39 @@ private fun requestCorrectPermission(context: Context, onBack: () -> Unit) {
             context,
             Manifest.permission.READ_MEDIA_IMAGES
         ) == PackageManager.PERMISSION_GRANTED -> {
-            // You can use the API that requires the permission.
             onBack()
-            // context.showMessage("permissões já concedidas")
         }
         ActivityCompat.shouldShowRequestPermissionRationale(
             context as MainActivity,
             Manifest.permission.READ_MEDIA_IMAGES
         ) -> {
-            requestPermissionLauncher.launch(
-                Manifest.permission.READ_MEDIA_IMAGES
-            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                requestPermissionLauncher.launch(
+                    Manifest.permission.READ_MEDIA_IMAGES
+                )
+            } else {
+                requestPermissionLauncher.launch(
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                )
+            }
             context.showMessage("Aceite as permissões para usar essa função")
         }
         else -> {
             // You can directly ask for the permission.
             // The registered ActivityResultCallback gets the result of this request.
-            requestPermissionLauncher.launch(
-                Manifest.permission.READ_MEDIA_IMAGES
-            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                requestPermissionLauncher.launch(
+                    Manifest.permission.READ_MEDIA_IMAGES
+                )
+            } else {
+                requestPermissionLauncher.launch(
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                )
+            }
         }
     }
 }
 
-
-private fun NavGraphBuilder.chatListGraph(
-    onOpenChat: (Long) -> Unit = {},
-    onSendNewMessage: () -> Unit = {},
-) {
-    composable(ConcordRoute.CHAT_LIST) {
-        val chatViewModel = hiltViewModel<ChatListViewModel>()
-        val chatState by chatViewModel.uiState.collectAsState()
-
-        ChatListScreen(
-            state = chatState,
-            onOpenChat = {
-                onOpenChat(it)
-            },
-            onSendNewMessage = onSendNewMessage,
-        )
-    }
-}
 
 internal const val messageChatRoute = "messages"
 internal const val messageChatIdArgument = "chatId"
@@ -241,5 +284,13 @@ fun NavHostController.navigateToChatScreen(
 ) {
     navigate("${messageChatRoute}/$chatId", navOptions)
 //    navigate("${ConcordRoute.MESSAGE_CHAT}/$chatId")
+}
+
+
+internal const val documentListRoute = "document"
+fun NavHostController.navigateToDocumentListScreen(
+    navOptions: NavOptions? = null
+) {
+    navigate(documentListRoute, navOptions)
 }
 
