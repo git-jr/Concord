@@ -53,7 +53,10 @@ fun MessageScreen(
 ) {
     Scaffold(
         topBar = {
-            AppBarChatScreen(state = state, onBackClick = onBack)
+            AppBarChatScreen(
+                state = state,
+                onBackClick = onBack
+            )
         }) { paddingValues ->
         Column(
             modifier
@@ -86,7 +89,7 @@ fun MessageScreen(
             }
 
             EntryTextBar(
-                state,
+                state = state,
                 onShowSelectorFile = onShowSelectorFile,
                 onClickSendMessage = onSendMessage,
                 onAcessSticker = onShowSelectorStickers
@@ -101,6 +104,7 @@ private fun SelectedMediaContainer(
     state: MessageScreenUiState,
     onDeselectMedia: () -> Unit,
 ) {
+    Divider(Modifier.height(0.4.dp).alpha(0.5f), color = MaterialTheme.colorScheme.outline)
     Box(
         contentAlignment = Alignment.BottomEnd,
         modifier = Modifier

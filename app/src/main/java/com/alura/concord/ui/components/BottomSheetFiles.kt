@@ -11,15 +11,18 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import com.alura.concord.R
 
@@ -35,8 +38,15 @@ fun BottomSheetFiles(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
-        Text(text = "Selecione o tipo de arquivo", textAlign = TextAlign.Center)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Tipo de arquivo",
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = MaterialTheme.colorScheme.primary
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             Modifier.fillMaxWidth(),
@@ -50,7 +60,7 @@ fun BottomSheetFiles(
                 IconButton(
                     onClick = onSelectPhoto,
                     Modifier.background(
-                        color = Color(android.graphics.Color.MAGENTA),
+                        color = Color("#7F66FE".toColorInt()),
                         shape = CircleShape
                     )
                 ) {
@@ -70,7 +80,7 @@ fun BottomSheetFiles(
             ) {
                 IconButton(
                     onClick = { },
-                    Modifier.background(color = Color("#7600bc".toColorInt()), shape = CircleShape)
+                    Modifier.background(color = Color("#FFFC2E74".toColorInt()), shape = CircleShape)
                 ) {
                     Icon(
                         painterResource(id = R.drawable.ic_action_cam),
@@ -88,7 +98,7 @@ fun BottomSheetFiles(
             ) {
                 IconButton(
                     onClick = onSelectFile,
-                    Modifier.background(color = Color("#ee6002".toColorInt()), shape = CircleShape)
+                    Modifier.background(color = Color("#F86633".toColorInt()), shape = CircleShape)
                 ) {
                     Icon(
                         painterResource(id = R.drawable.ic_action_folder),

@@ -17,10 +17,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.alura.concord.extensions.showMessage
+import com.alura.concord.medias.launchPickDocumentMedia
+import com.alura.concord.medias.launchPickVisualMedia
+import com.alura.concord.medias.setResultFromFileSelection
+import com.alura.concord.medias.setResultFromImageSelection
 import com.alura.concord.navigation.*
 import com.alura.concord.ui.chat.MessageListViewModel
-import com.alura.concord.ui.chat.MessageScreenUiState
 import com.google.accompanist.navigation.material.*
+import kotlinx.coroutines.launch
 
 private lateinit var requestPermissionLauncher: ManagedActivityResultLauncher<String, Boolean>
 
@@ -33,60 +37,117 @@ fun ConcordNavHost(
     navController: NavHostController = rememberNavController(bottomSheetNavigator)
 ) {
 
-    // viewModel "Global'
-    val viewModel = hiltViewModel<MessageListViewModel>()
+    val viewModelMessage = hiltViewModel<MessageListViewModel>()
+    val state by viewModelMessage.uiState.collectAsState()
+
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     requestPermissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                viewModel.setImagePerssion(true)
+                viewModelMessage.setImagePermission(true)
                 context.showMessage("Permissões concedidas")
             } else {
-                navController.navigateUp()
+
                 context.showMessage("Permissões ainda não concedidas")
             }
         }
 
-    ModalBottomSheetLayout(
-        bottomSheetNavigator = bottomSheetNavigator,
+
+    if (state.showStickers) {
+        navController.navigate(bottomsheet_stickers)
+    }
+
+    val pickMediaFiles =
+        setResultFromImageSelection(
+            onSelectedFile = { path, name ->
+                if (state.messageValue.isEmpty()) {
+                    state.onMessageValueChange(
+                        name ?: context.getString(R.string.document)
+                    )
+                }
+                viewModelMessage.loadMediaInScreen(uri = path)
+                coroutineScope.launch {
+                    viewModelMessage.sendMessage()
+                }
+            },
+            onBack = { navController.navigateUp() }
+        )
+
+    val pickMediaImage =
+        setResultFromFileSelection(
+            onSelectedImage = {
+                viewModelMessage.loadMediaInScreen(uri = it)
+            },
+//            onBack = { navController.navigateUp() }
+        )
+
+
+    NavHost(
+        navController = navController,
+        startDestination = chatListRoute,
         modifier = modifier,
     ) {
-        NavHost(
-            navController = navController,
-            startDestination = chatListRoute,
-            modifier = modifier,
-        ) {
-            chatListGraph(
-                onOpenChat = { chatId ->
-                    navController.navigateToMessageScreen(chatId)
-                }
-            )
+        chatListGraph(
+            onOpenChat = { chatId ->
+               // viewModelMessage.setChatId(chatId)
+                navController.navigateToMessageScreen(chatId)
+            }
+        )
 
-            messageGraph(
-                showSheetFiles = {
-                    navController.navigate(bottomsheet_files)
-                },
-                showSheetStickers = {
-                    navController.navigate(bottomsheet_stickers)
-                },
-                onBack = {
-                    navController.navigateUp()
-                },
-                viewModel = viewModel
-            )
-        }
+        messageGraphNew(
+            state = state,
+            onFilesClick = {
+                navController.navigate(bottomsheet_files)
+            },
+            onBack = {
+                navController.navigateUp()
+            },
+            onSendMessage = {
+                coroutineScope.launch {
+                    viewModelMessage.sendMessage()
+                }
+            },
+            onDeselectMedia = {
+                viewModelMessage.deselectMedia()
+            },
+            onSelectPhoto = {
+                launchPickVisualMedia(pickMediaImage, "image/*")
+            },
+            onSelectFile = {
+                launchPickDocumentMedia(pickMediaFiles)
+            },
+            onSelectedSticker = {
+                viewModelMessage.loadMediaInScreen(uri = it.toString())
+                coroutineScope.launch {
+                    viewModelMessage.sendMessage()
+                }
+                navController.navigateUp()
+            },
+            onShowSelectorStickers = {
+                checkImagePermission(context, onSetPermission = {
+                    viewModelMessage.setImagePermission(true)
+                })
+            },
+            onShowStickers = { value ->
+                viewModelMessage.setImagePermission(value)
+            }
+        )
     }
 }
 
 
-fun checkImagePermission(context: Context, onBack: () -> Unit) {
+fun checkImagePermission(
+    context: Context,
+    onSetPermission: () -> Unit = {}
+) {
     when {
         ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.READ_MEDIA_IMAGES
         ) == PackageManager.PERMISSION_GRANTED -> {
-            onBack()
+            onSetPermission()
         }
         ActivityCompat.shouldShowRequestPermissionRationale(
             context as MainActivity,
