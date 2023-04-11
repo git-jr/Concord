@@ -1,20 +1,14 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.alura.concord.navigation
 
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
+import android.net.Uri
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.alura.concord.R
-import com.alura.concord.checkImagePermission
-import com.alura.concord.medias.launchPickDocumentMedia
-import com.alura.concord.medias.launchPickVisualMedia
-import com.alura.concord.medias.setResultFromFileSelection
-import com.alura.concord.medias.setResultFromImageSelection
-import com.alura.concord.ui.chat.MessageListViewModel
 import com.alura.concord.ui.chat.MessageScreen
 import com.alura.concord.ui.chat.MessageScreenUiState
 import com.alura.concord.ui.components.BottomSheetFiles
@@ -24,32 +18,34 @@ import com.google.accompanist.navigation.material.bottomSheet
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialNavigationApi::class)
-internal fun NavGraphBuilder.messageGraph(
-    viewModel: MessageListViewModel,
-    showSheetFiles: () -> Unit = {},
-    showSheetStickers: () -> Unit = {},
-    onBack: () -> Unit = {}
+internal fun NavGraphBuilder.messageGraphNew(
+    state: MessageScreenUiState,
+    onFilesClick: () -> Unit = {},
+    onBack: () -> Unit = {},
+    onSendMessage: () -> Unit = {},
+    onDeselectMedia: () -> Unit = {},
+    onSelectPhoto: () -> Unit = {},
+    onSelectFile: () -> Unit = {},
+    onShowStickers: (Boolean) -> Unit = {},
+    onSelectedSticker: (Uri) -> Unit = {},
+    onShowSelectorStickers: () -> Unit = {},
 ) {
-
-    composable(messageChatFullPath) { backStackEntry ->
+    composable("messageChatFullPath") { backStackEntry ->
         backStackEntry.arguments?.getString(messageChatIdArgument)?.let { chatId ->
-            val state: MessageScreenUiState by viewModel.uiState.collectAsState()
 
-            viewModel.setChatId(chatId.toLong())
-            val coroutineScope = rememberCoroutineScope()
-
-            MessageScreen(state = state,
+            MessageScreen(
+                state = state,
                 onSendMessage = {
-                    coroutineScope.launch {
-                        viewModel.sendMessage()
-                    }
-                }, onShowSelectorFile = {
-                    showSheetFiles()
-                }, onShowSelectorStickers = {
-                    showSheetStickers()
+                    onSendMessage()
+                },
+                onShowSelectorFile = {
+                    onFilesClick()
+                },
+                onShowSelectorStickers = {
+                    onShowSelectorStickers()
                 },
                 onDeselectMedia = {
-                    viewModel.deselectMedia()
+                    onDeselectMedia()
                 },
                 onBack = {
                     onBack()
@@ -58,69 +54,69 @@ internal fun NavGraphBuilder.messageGraph(
         }
     }
 
-    bottomSheet(bottomsheet_files) {
-        val coroutineScope = rememberCoroutineScope()
-        val context = LocalContext.current
-        val state: MessageScreenUiState by viewModel.uiState.collectAsState()
+//    bottomSheet(bottomsheet_files) {
+//        BottomSheetFiles(
+//            onSelectPhoto = {
+//                onSelectPhoto()
+//            },
+//            onSelectFile = {
+//                onSelectFile()
+//            }
+//        )
+//    }
 
+    composable(bottomsheet_stickers) {
+        val scope = rememberCoroutineScope()
 
-        val pickMediaFiles =
-            setResultFromImageSelection(
-                onSelectedFile = { path, name ->
-                    if (state.messageValue.isEmpty()) {
-                        state.onMessageValueChange(
-                            name ?: context.getString(R.string.document)
-                        )
+        val sheetState = rememberModalBottomSheetState()
+        ModalBottomSheet(
+            sheetState = sheetState,
+            content = {
+                BottomSheetStickers(
+                    onSelectedSticker = { uri ->
+                        onSelectedSticker(uri)
+                        scope.launch {
+                            sheetState.hide()
+                        }
                     }
-                    viewModel.loadMediaInScreen(uri = path)
-                    coroutineScope.launch {
-                        viewModel.sendMessage()
-                    }
-                },
-                onBack = onBack
-            )
-        val pickMediaImage =
-            setResultFromFileSelection(
-                onSelectedImage = {
-                    viewModel.loadMediaInScreen(uri = it)
-                },
-                onBack = onBack
-            )
-
-        BottomSheetFiles(
-            onSelectPhoto = {
-                launchPickVisualMedia(pickMediaImage, "image/*")
+                )
             },
-            onSelectFile = {
-                launchPickDocumentMedia(pickMediaFiles)
+            onDismissRequest = {
+                onBack()
+//            scope.launch {
+//                sheetState.hide()
+//            }
             }
         )
+
     }
+}
 
-    bottomSheet(bottomsheet_stickers) {
-        val state: MessageScreenUiState by viewModel.uiState.collectAsState()
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BoottomSheetSticker(onSelectedSticker: (Uri) -> Unit, onBack: () -> Unit) {
+    val scope = rememberCoroutineScope()
 
-        val coroutineScope = rememberCoroutineScope()
-        val context = LocalContext.current
-
-        checkImagePermission(context, onBack = {
-            viewModel.setImagePerssion(true)
-        })
-
-        if (state.imagePermission) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        sheetState = sheetState,
+        content = {
             BottomSheetStickers(
-                onSelectedSticker = {
-                    viewModel.loadMediaInScreen(uri = it.toString())
-                    coroutineScope.launch {
-                        viewModel.sendMessage()
+                onSelectedSticker = { uri ->
+                    onSelectedSticker(uri)
+                    scope.launch {
+                        sheetState.hide()
                     }
-                    onBack()
-                })
-        }else{
-//            onResquestPermission()
+                }
+            )
+        },
+        onDismissRequest = {
+            onBack()
+//            scope.launch {
+//                sheetState.hide()
+//            }
         }
-    }
-
+    )
 }
 
 

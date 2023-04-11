@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MessageListViewModel @Inject constructor(
+class SecondMessageListViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val messageDao: MessageDao,
     private val chatDao: ChatDao,
@@ -34,7 +34,9 @@ class MessageListViewModel @Inject constructor(
     init {
 
 //        initWithSamples()
-        loadMessages()
+//        loadMessages()
+
+        loadDatas()
 
         _uiState.update { state ->
             state.copy(
@@ -67,17 +69,6 @@ class MessageListViewModel @Inject constructor(
     }
 
     fun loadMessages() {
-        viewModelScope.launch {
-            val chat = chatDao.getById(chatId).first()
-            chat?.let {
-                _uiState.value = _uiState.value.copy(
-                    ownerName = chat.owner,
-                    profilePicOwner = chat.profilePicOwner
-                )
-            }
-        }
-
-
         viewModelScope.launch {
             messageDao.getByChatId(chatId).collect { messages ->
                 messages?.let {
@@ -139,27 +130,26 @@ class MessageListViewModel @Inject constructor(
     fun deselectMedia() {
         _uiState.value = _uiState.value.copy(
             mediaInSelection = "",
-            hasContentToSend = false
         )
     }
 
-    fun setChatId(chatId: Long) {
-        this.chatId = chatId
-
+    private fun loadDatas() {
         viewModelScope.launch {
             loadMessages()
 
-            val chat = chatDao.getById(chatId).first()
-            chat?.let {
-                _uiState.value = _uiState.value.copy(
-                    ownerName = chat.owner,
-                    profilePicOwner = chat.profilePicOwner
-                )
+
+            chatDao.getById(chatId).collect { chat ->
+                chat?.let {
+                    _uiState.value = _uiState.value.copy(
+                        ownerName = chat.owner,
+                        profilePicOwner = chat.profilePicOwner
+                    )
+                }
             }
         }
     }
 
-    fun setImagePermission(value: Boolean) {
+    fun setImagePerssion(value: Boolean) {
         _uiState.value = _uiState.value.copy(
             showStickers = value,
         )

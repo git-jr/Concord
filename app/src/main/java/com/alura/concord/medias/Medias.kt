@@ -73,7 +73,6 @@ fun setResultFromImageSelection(
 @Composable
 fun setResultFromFileSelection(
     onSelectedImage: (String) -> Unit = {},
-    onBack: () -> Unit = {}
 ): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
     val context = LocalContext.current
     val pickMedia =
@@ -96,8 +95,6 @@ fun setResultFromFileSelection(
                         onSelectedImage(file.path)
                     }
                 }
-
-                onBack()
                 Log.d("PhotoPicker", "Selected URI: $uri")
             } else {
                 Log.d("PhotoPicker", "No media selected")
