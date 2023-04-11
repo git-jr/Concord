@@ -28,11 +28,9 @@ class MessageListViewModel @Inject constructor(
     val uiState: StateFlow<MessageScreenUiState>
         get() = _uiState.asStateFlow()
 
-    //    private val chatId = savedStateHandle[messageChatIdArgument]
-    private var chatId = savedStateHandle.get<String>(messageChatIdArgument)?.toLong() ?: 0
+    private var chatId: Long = savedStateHandle.get<String>(messageChatIdArgument)?.toLong() ?: 0
 
     init {
-
 //        initWithSamples()
         loadMessages()
 
@@ -118,7 +116,7 @@ class MessageListViewModel @Inject constructor(
                 )
             }
 
-        chatDao.updateLastMessage(chatId, lastMessage)
+        chatDao.updateLastMessage(chatId, lastMessage, userMessage.date)
     }
 
     private fun cleanFields() {
@@ -161,7 +159,7 @@ class MessageListViewModel @Inject constructor(
 
     fun setImagePermission(value: Boolean) {
         _uiState.value = _uiState.value.copy(
-            showStickers = value,
+            hasImagePermission = value,
         )
     }
 

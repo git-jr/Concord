@@ -10,7 +10,7 @@ import com.alura.concord.ui.home.ChatListViewModel
 
 internal const val chatListRoute = "chat"
 
-internal fun NavGraphBuilder.chatListGraph(
+ fun NavGraphBuilder.chatListGraph(
     onOpenChat: (Long) -> Unit = {},
     onSendNewMessage: () -> Unit = {},
 ) {

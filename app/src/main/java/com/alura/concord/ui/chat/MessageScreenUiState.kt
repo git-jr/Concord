@@ -13,5 +13,5 @@ data class MessageScreenUiState(
     val mediaInSelection: String = "",
     val profilePicOwner: String = "",
     val ownerName: String = "",
-    val showStickers: Boolean = false,
+    val hasImagePermission: Boolean = false,
 )
