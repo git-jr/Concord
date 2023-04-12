@@ -2,9 +2,11 @@ package com.alura.concord.ui.components
 
 import android.content.ContentUris
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Size
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -66,7 +68,7 @@ fun BottomSheetStickers(
                             .size(50.dp)
                             .align(Alignment.Center),
                         contentScale = ContentScale.Inside,
-                        model = item.contentUri,
+                        model = item.thumbnail,
                         placeholder = painterResource(R.drawable.image_place_holder),
                         error = painterResource(R.drawable.image_place_holder),
                         contentDescription = null,
@@ -78,7 +80,6 @@ fun BottomSheetStickers(
         Spacer(modifier = Modifier.height(32.dp))
     }
 }
-
 
 fun loadImagesAndThumbs(context: Context): MutableList<Image> {
     val imageList = mutableListOf<Image>()
@@ -92,11 +93,22 @@ fun loadImagesAndThumbs(context: Context): MutableList<Image> {
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         }
 
-    val projection = arrayOf(
-        MediaStore.Images.Media._ID,
-        MediaStore.Images.Media.DISPLAY_NAME,
-        MediaStore.Images.Media.SIZE
-    )
+    val projection =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            arrayOf(
+                MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DISPLAY_NAME,
+                MediaStore.Images.Media.SIZE,
+            )
+        } else {
+            arrayOf(
+                MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DISPLAY_NAME,
+                MediaStore.Images.Media.SIZE,
+                MediaStore.Images.Thumbnails._ID,
+                MediaStore.Images.Thumbnails.DATA
+            )
+        }
 
     val query = context.contentResolver.query(
         collection,
@@ -120,21 +132,50 @@ fun loadImagesAndThumbs(context: Context): MutableList<Image> {
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 id
             )
-//
-//            val thumb: Bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//                context.contentResolver.loadThumbnail(
-//                    contentUri, Size(640, 480), null
-//                )
-//            } else {
-//                MediaStore.Images.Thumbnails.getThumbnail(
-//                    context.contentResolver,
-//                    id,
-//                    MediaStore.Images.Thumbnails.MINI_KIND,
-//                    null
-//                )
-//            }
 
-            imageList += Image(contentUri, name, size)
+            var thumbnail: Bitmap
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Load thumbs on Android >10
+                // https://developer.android.com/reference/android/content/ContentResolver#loadThumbnail(android.net.Uri,%20android.util.Size,%20android.os.CancellationSignal)
+
+                val thumbnailSize = Size(640, 480)
+                val thumbnailAboveAndroid10: Bitmap = context.contentResolver.loadThumbnail(
+                    contentUri,
+                    thumbnailSize,
+                    null
+                )
+
+                thumbnail = thumbnailAboveAndroid10
+            } else {
+                // Load thumbs on Android <10
+                // https://developer.android.com/reference/android/provider/MediaStore.Images.Thumbnails
+                val thumbnailIdColumn = cursor.getColumnIndex(MediaStore.Images.Thumbnails._ID)
+                val thumbnailDataColumn = cursor.getColumnIndex(MediaStore.Images.Thumbnails.DATA)
+                val thumbnailId = cursor.getLong(thumbnailIdColumn)
+                val thumbnailPath = cursor.getString(thumbnailDataColumn)
+                val thumbnailUri = ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    thumbnailId
+                )
+
+                val thumbnailBelowAndroid10 = MediaStore.Images.Thumbnails.getThumbnail(
+                    context.contentResolver,
+                    thumbnailId,
+                    MediaStore.Images.Thumbnails.MINI_KIND,
+                    null
+                )
+
+                thumbnail = thumbnailBelowAndroid10
+            }
+
+
+            imageList += Image(
+                name = name,
+                thumbnail = thumbnail,
+                contentUri = contentUri,
+                size = size,
+            )
         }
     }
 

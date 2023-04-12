@@ -36,8 +36,8 @@ class MessageListViewModel @Inject constructor(
     private var chatId: Long = savedStateHandle.get<String>(messageChatIdArgument)?.toLong() ?: 0
 
     init {
-//        initWithSamples()
-        loadMessages()
+        initWithSamples()
+//        loadMessages()
 
         _uiState.update { state ->
             state.copy(

@@ -39,7 +39,7 @@ val messageListSample = mutableListOf(
         content = LoremIpsum(1).values.first(),
         author = Author.USER,
         date = getRandomDate(),
-        mediaLink = "/storage/07E9-111C/Android/data/com.alura.concord/files/IMG_20230405_190725.jpg"
+        mediaLink = "content://media/external/images/media/94"
     ),
     Message(
         content = LoremIpsum(7).values.first(),
