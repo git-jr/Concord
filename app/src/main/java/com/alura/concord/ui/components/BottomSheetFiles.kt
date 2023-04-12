@@ -70,7 +70,9 @@ fun BottomSheetFiles(
                         tint = Color.White
                     )
                 }
-                Text(text = "Foto")
+                Text(
+                    text = "Foto", color = MaterialTheme.colorScheme.onBackground
+                )
             }
 
             Column(
@@ -80,7 +82,10 @@ fun BottomSheetFiles(
             ) {
                 IconButton(
                     onClick = { },
-                    Modifier.background(color = Color("#FFFC2E74".toColorInt()), shape = CircleShape)
+                    Modifier.background(
+                        color = Color("#FFFC2E74".toColorInt()),
+                        shape = CircleShape
+                    )
                 ) {
                     Icon(
                         painterResource(id = R.drawable.ic_action_cam),
@@ -88,7 +93,7 @@ fun BottomSheetFiles(
                         tint = Color.White
                     )
                 }
-                Text(text = "Câmera")
+                Text(text = "Câmera", color = MaterialTheme.colorScheme.onBackground)
             }
 
             Column(
@@ -106,7 +111,7 @@ fun BottomSheetFiles(
                         tint = Color.White,
                     )
                 }
-                Text(text = "Ver tudo")
+                Text(text = "Ver tudo", color = MaterialTheme.colorScheme.onBackground)
             }
         }
         Spacer(modifier = Modifier.height(32.dp))

@@ -20,11 +20,13 @@ private val DarkColorScheme = darkColorScheme(
     secondary = PurpleGrey80,
     tertiary = Pink80,
 
-    tertiaryContainer = Green10,
-    onPrimaryContainer = Yellow10,
+    tertiaryContainer = Green40,
+    onPrimaryContainer = YellowDark10,
     inversePrimary = Red10,
-    outline = Gray10,
-    surfaceVariant = Green20
+    outline = GrayDark10,
+    surfaceVariant = GreenDark20,
+    surface = GreenDark30,
+    background = GreenDark30
 
 
 )

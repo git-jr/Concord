@@ -222,7 +222,7 @@ private fun EntryTextBar(
             modifier = Modifier
                 .shadow(1.dp, RoundedCornerShape(100))
                 .background(
-                    Color("#FFFFFF".toColorInt()),
+                    MaterialTheme.colorScheme.background,
                     RoundedCornerShape(100)
                 )
                 .weight(5f),
@@ -242,7 +242,7 @@ private fun EntryTextBar(
                 value = state.messageValue,
                 onValueChange = state.onMessageValueChange,
                 modifier = Modifier.weight(5F),
-                textStyle = TextStyle(fontSize = 18.sp),
+                textStyle = TextStyle(fontSize = 18.sp, color = MaterialTheme.colorScheme.outline),
                 decorationBox = { innerValue ->
                     Box {
                         if (state.messageValue.isEmpty()) {

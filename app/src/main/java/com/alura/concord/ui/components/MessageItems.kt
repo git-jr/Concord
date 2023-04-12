@@ -168,51 +168,6 @@ fun MessageItemOther(message: Message) {
     }
 }
 
-@Composable
-fun MessageItemOtherOld(message: Message) {
-    Column(
-        modifier = Modifier
-            .padding(vertical = 8.dp)
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.Start
-    ) {
-        Row(Modifier.padding(end = 50.dp)) {
-            val hasImage = message.mediaLink.isNotEmpty()
-            val intrinsicSizeLayout = if (hasImage) {
-                IntrinsicSize.Min
-            } else {
-                IntrinsicSize.Max
-            }
-            Column(
-                Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.inversePrimary,
-                        shape = RoundedCornerShape(0.dp, 25.dp, 25.dp, 25.dp)
-                    )
-                    .padding(16.dp)
-                    .width(intrinsicSizeLayout),
-            ) {
-                if (hasImage) {
-                    AsyncImage(
-                        modifier = Modifier.widthIn(
-                            min = 200.dp,
-                            max = 300.dp
-                        ).padding(2.dp)
-                            .clip(RoundedCornerShape(10)),
-                        imageUrl = message.mediaLink,
-                        contentScale = ContentScale.FillWidth
-                    )
-                }
-                Text(
-                    message.content,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(horizontal = 4.dp)
-                )
-            }
-        }
-    }
-}
-
 @Preview
 @Composable
 fun MessageItemUserPreview() {
