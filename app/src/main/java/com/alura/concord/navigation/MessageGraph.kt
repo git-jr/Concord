@@ -5,13 +5,11 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
@@ -28,7 +26,6 @@ import com.alura.concord.medias.launchPickDocumentMedia
 import com.alura.concord.medias.launchPickVisualMedia
 import com.alura.concord.medias.setResultFromFileSelection
 import com.alura.concord.medias.setResultFromImageSelection
-import com.alura.concord.ui.chat.BottomSheetViewModel
 import com.alura.concord.ui.chat.MessageListViewModel
 import com.alura.concord.ui.chat.MessageScreen
 import com.alura.concord.ui.components.BottomSheetFiles
@@ -44,9 +41,6 @@ fun NavGraphBuilder.messageGraph(
             val state by viewModelMessage.uiState.collectAsState()
             val coroutineScope = rememberCoroutineScope()
             val context = LocalContext.current
-
-            val bottomSheetStateViewModel = hiltViewModel<BottomSheetViewModel>()
-            val bottomSheetState by bottomSheetStateViewModel.uiState.collectAsState()
 
             val pickMediaFiles =
                 setResultFromImageSelection(
@@ -74,7 +68,7 @@ fun NavGraphBuilder.messageGraph(
                 rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
                     if (isGranted) {
                         viewModelMessage.setImagePermission(true)
-                        bottomSheetState.onShowBottomSheetStickerChange(true)
+                        viewModelMessage.setShowBottomSheetSticker(true)
                         context.showMessage("Permissões concedidas")
                     } else {
                         context.showMessage("Permissões ainda não concedidas")
@@ -90,7 +84,7 @@ fun NavGraphBuilder.messageGraph(
                     }
                 },
                 onShowSelectorFile = {
-                    bottomSheetState.onShowBottomSheetFileChange(true)
+                    viewModelMessage.setShowBottomSheetFile(true)
 
                 },
                 onShowSelectorStickers = {
@@ -99,7 +93,7 @@ fun NavGraphBuilder.messageGraph(
                         requestPermissionLauncher = requestPermissionLauncher,
                         onPermissionHasObtained = {
                             viewModelMessage.setImagePermission(true)
-                            bottomSheetState.onShowBottomSheetStickerChange(true)
+                            viewModelMessage.setShowBottomSheetSticker(true)
                         })
                 },
                 onDeselectMedia = {
@@ -113,30 +107,30 @@ fun NavGraphBuilder.messageGraph(
                 }
             )
 
-            if (bottomSheetState.showBottomSheetSticker) {
+            if (state.showBottomSheetSticker) {
                 ModalBottomSheetSticker(
                     onSelectedSticker = {
-                        bottomSheetState.onShowBottomSheetStickerChange(false)
+                        viewModelMessage.setShowBottomSheetSticker(false)
                         viewModelMessage.loadMediaInScreen(uri = it.toString())
                         coroutineScope.launch {
                             viewModelMessage.sendMessage()
                         }
                     }, onBack = {
-                        bottomSheetState.onShowBottomSheetStickerChange(false)
+                        viewModelMessage.setShowBottomSheetSticker(false)
                     })
             }
 
-            if (bottomSheetState.showBottomSheetFile) {
+            if (state.showBottomSheetFile) {
                 ModalBottomSheetFile(
                     onSelectPhoto = {
-                        bottomSheetState.onShowBottomSheetFileChange(false)
+                        viewModelMessage.setShowBottomSheetFile(false)
                         launchPickVisualMedia(pickMediaImage, "image/*")
                     },
                     onSelectFile = {
-                        bottomSheetState.onShowBottomSheetFileChange(false)
+                        viewModelMessage.setShowBottomSheetFile(false)
                         launchPickDocumentMedia(pickMediaFiles)
                     }, onBack = {
-                        bottomSheetState.onShowBottomSheetFileChange(false)
+                        viewModelMessage.setShowBottomSheetFile(false)
                     })
             }
         }

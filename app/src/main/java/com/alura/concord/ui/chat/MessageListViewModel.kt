@@ -23,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MessageListViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val messageDao: MessageDao,
     private val dataStore: DataStore<Preferences>,
     private val chatDao: ChatDao,
@@ -37,7 +37,7 @@ class MessageListViewModel @Inject constructor(
 
     init {
         initWithSamples()
-//        loadMessages()
+        loadDatas()
 
         _uiState.update { state ->
             state.copy(
@@ -58,29 +58,23 @@ class MessageListViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         hasContentToSend = (it.isNotEmpty() || _uiState.value.messageValue.isNotEmpty())
                     )
-                },
+                }
             )
         }
     }
 
-    fun initWithSamples() {
+    private fun initWithSamples() {
         _uiState.value = _uiState.value.copy(
             messages = messageListSample,
         )
     }
 
-    fun loadMessages() {
-        viewModelScope.launch {
-            val chat = chatDao.getById(chatId).first()
-            chat?.let {
-                _uiState.value = _uiState.value.copy(
-                    ownerName = chat.owner,
-                    profilePicOwner = chat.profilePicOwner
-                )
-            }
-        }
+    private fun loadDatas() {
+        loadChatsInfos()
+        loadMessages()
+    }
 
-
+    private fun loadMessages() {
         viewModelScope.launch {
             messageDao.getByChatId(chatId).collect { messages ->
                 messages?.let {
@@ -92,21 +86,15 @@ class MessageListViewModel @Inject constructor(
         }
     }
 
-    suspend fun sendMessage() {
-        with(_uiState) {
-            if (!value.hasContentToSend) {
-                return
+    private fun loadChatsInfos() {
+        viewModelScope.launch {
+            val chat = chatDao.getById(chatId).first()
+            chat?.let {
+                _uiState.value = _uiState.value.copy(
+                    ownerName = chat.owner,
+                    profilePicOwner = chat.profilePicOwner
+                )
             }
-
-            val userMessage = Message(
-                content = value.messageValue,
-                author = Author.USER,
-                chatId = chatId,
-                mediaLink = value.mediaInSelection,
-                date = getFormattedCurrentDate(),
-            )
-            updateLastMessageChat(userMessage)
-            cleanFields()
         }
     }
 
@@ -132,6 +120,23 @@ class MessageListViewModel @Inject constructor(
         )
     }
 
+    suspend fun sendMessage() {
+        with(_uiState) {
+            if (!value.hasContentToSend) {
+                return
+            }
+
+            val userMessage = Message(
+                content = value.messageValue,
+                author = Author.USER,
+                chatId = chatId,
+                mediaLink = value.mediaInSelection,
+                date = getFormattedCurrentDate(),
+            )
+            updateLastMessageChat(userMessage)
+            cleanFields()
+        }
+    }
 
     fun loadMediaInScreen(
         uri: String
@@ -146,28 +151,11 @@ class MessageListViewModel @Inject constructor(
         )
     }
 
-//    fun setChatId(chatId: Long) {
-//        this.chatId = chatId
-//
-//        viewModelScope.launch {
-//            loadMessages()
-//
-//            val chat = chatDao.getById(chatId).first()
-//            chat?.let {
-//                _uiState.value = _uiState.value.copy(
-//                    ownerName = chat.owner,
-//                    profilePicOwner = chat.profilePicOwner
-//                )
-//            }
-//        }
-//    }
-
     fun setImagePermission(value: Boolean) {
         _uiState.value = _uiState.value.copy(
             hasImagePermission = value,
         )
     }
-
 
     suspend fun cleanLastOpenChat() {
         viewModelScope.launch {
@@ -175,6 +163,18 @@ class MessageListViewModel @Inject constructor(
                 it.remove(LAST_OPEN_CHAT)
             }
         }
+    }
+
+    fun setShowBottomSheetSticker(value: Boolean) {
+        _uiState.value = _uiState.value.copy(
+            showBottomSheetSticker = value,
+        )
+    }
+
+    fun setShowBottomSheetFile(value: Boolean) {
+        _uiState.value = _uiState.value.copy(
+            showBottomSheetFile = value,
+        )
     }
 
 }

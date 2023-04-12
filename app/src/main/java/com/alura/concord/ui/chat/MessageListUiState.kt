@@ -14,4 +14,6 @@ data class MessageListUiState(
     val profilePicOwner: String = "",
     val ownerName: String = "",
     val hasImagePermission: Boolean = false,
+    val showBottomSheetSticker: Boolean = false,
+    val showBottomSheetFile: Boolean = false,
 )

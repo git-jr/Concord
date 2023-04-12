@@ -60,7 +60,7 @@ fun BottomSheetStickers(
                     Modifier
                         .fillMaxSize()
                         .padding(8.dp)
-                        .clickable { onSelectedSticker(item.contentUri) }
+                        .clickable { onSelectedSticker(item.uri) }
                 ) {
 
                     coil.compose.AsyncImage(
@@ -173,7 +173,7 @@ fun loadImagesAndThumbs(context: Context): MutableList<Image> {
             imageList += Image(
                 name = name,
                 thumbnail = thumbnail,
-                contentUri = contentUri,
+                uri = contentUri,
                 size = size,
             )
         }

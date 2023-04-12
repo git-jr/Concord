@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 
 data class Image(
-    val contentUri: Uri,
+    val uri: Uri,
     val name: String,
     val size: Int,
     val thumbnail: Bitmap? = null
