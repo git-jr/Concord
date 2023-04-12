@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -139,7 +138,7 @@ fun ChatItem(
                         modifier = Modifier.weight(0.8f)
                     )
                     Text(
-                        text = chat.date,
+                        text = chat.dateLastMessage,
                         fontSize = 12.sp,
                         textAlign = TextAlign.End,
                         color = MaterialTheme.colorScheme.outline,
@@ -165,7 +164,7 @@ fun ChatItem(
 fun ChatListPreview() {
     ConcordTheme {
         ChatListScreen(
-            state = ChatListUiState(chatListSample)
+            state = ChatListUiState(null, chatListSample)
         )
     }
 }

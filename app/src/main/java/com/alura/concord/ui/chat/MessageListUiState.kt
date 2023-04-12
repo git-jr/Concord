@@ -2,7 +2,7 @@ package com.alura.concord.ui.chat
 
 import com.alura.concord.data.Message
 
-data class MessageScreenUiState(
+data class MessageListUiState(
     val messages: List<Message> = emptyList(),
     val messageValue: String = "",
     val onMessageValueChange: (String) -> Unit = {},

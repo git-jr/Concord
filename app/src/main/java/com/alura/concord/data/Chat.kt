@@ -10,5 +10,5 @@ data class Chat(
     val owner: String = "",
     val profilePicOwner: String = "",
     val lastMessage: String = "",
-    val date: String = "",
+    val dateLastMessage: String = "",
 )

@@ -9,12 +9,12 @@ data class Message(
     val id: Long = 0L,
     val chatId: Long = 0L,
     val content: String = "",
-    val author: Author = Author.AI,
+    val author: Author = Author.OTHER,
     val date: String = "",
     val mediaLink: String = ""
 )
 
 
 enum class Author {
-    USER, AI
+    USER, OTHER
 }

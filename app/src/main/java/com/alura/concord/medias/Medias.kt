@@ -12,7 +12,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import com.alura.concord.ui.chat.MessageListViewModel
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
@@ -102,7 +101,6 @@ fun setResultFromFileSelection(
         }
     return pickMedia
 }
-
 
 fun createCopyFromInternalStorage(context: Context, uri: Uri): File? {
     // Obtenha um InputStream a partir da Uri usando o ContentResolver

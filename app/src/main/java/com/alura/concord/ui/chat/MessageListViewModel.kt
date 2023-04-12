@@ -1,5 +1,8 @@
 package com.alura.concord.ui.chat
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +13,7 @@ import com.alura.concord.data.Message
 import com.alura.concord.data.messageListSample
 import com.alura.concord.database.ChatDao
 import com.alura.concord.database.MessageDao
+import com.alura.concord.database.preferences.PreferencesKey.LAST_OPEN_CHAT
 import com.alura.concord.navigation.messageChatIdArgument
 import com.alura.concord.util.getFormattedCurrentDate
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,11 +25,12 @@ import javax.inject.Inject
 class MessageListViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val messageDao: MessageDao,
+    private val dataStore: DataStore<Preferences>,
     private val chatDao: ChatDao,
     private val application: ConcordApplication,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(MessageScreenUiState())
-    val uiState: StateFlow<MessageScreenUiState>
+    private val _uiState = MutableStateFlow(MessageListUiState())
+    val uiState: StateFlow<MessageListUiState>
         get() = _uiState.asStateFlow()
 
     private var chatId: Long = savedStateHandle.get<String>(messageChatIdArgument)?.toLong() ?: 0
@@ -141,21 +146,21 @@ class MessageListViewModel @Inject constructor(
         )
     }
 
-    fun setChatId(chatId: Long) {
-        this.chatId = chatId
-
-        viewModelScope.launch {
-            loadMessages()
-
-            val chat = chatDao.getById(chatId).first()
-            chat?.let {
-                _uiState.value = _uiState.value.copy(
-                    ownerName = chat.owner,
-                    profilePicOwner = chat.profilePicOwner
-                )
-            }
-        }
-    }
+//    fun setChatId(chatId: Long) {
+//        this.chatId = chatId
+//
+//        viewModelScope.launch {
+//            loadMessages()
+//
+//            val chat = chatDao.getById(chatId).first()
+//            chat?.let {
+//                _uiState.value = _uiState.value.copy(
+//                    ownerName = chat.owner,
+//                    profilePicOwner = chat.profilePicOwner
+//                )
+//            }
+//        }
+//    }
 
     fun setImagePermission(value: Boolean) {
         _uiState.value = _uiState.value.copy(
@@ -163,5 +168,13 @@ class MessageListViewModel @Inject constructor(
         )
     }
 
+
+    suspend fun cleanLastOpenChat() {
+        viewModelScope.launch {
+            dataStore.edit {
+                it.remove(LAST_OPEN_CHAT)
+            }
+        }
+    }
 
 }

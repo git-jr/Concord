@@ -43,7 +43,7 @@ import com.alura.concord.ui.components.*
 
 @Composable
 fun MessageScreen(
-    state: MessageScreenUiState,
+    state: MessageListUiState,
     modifier: Modifier = Modifier,
     onSendMessage: () -> Unit = {},
     onShowSelectorFile: () -> Unit = {},
@@ -71,8 +71,8 @@ fun MessageScreen(
             ) {
                 items(state.messages.reversed(), contentType = { it.author }) { it ->
                     when (it.author) {
-                        Author.AI -> {
-                            MessageItemAi(it)
+                        Author.OTHER -> {
+                            MessageItemOther(it)
                         }
 
                         Author.USER -> {
@@ -101,7 +101,7 @@ fun MessageScreen(
 
 @Composable
 private fun SelectedMediaContainer(
-    state: MessageScreenUiState,
+    state: MessageListUiState,
     onDeselectMedia: () -> Unit,
 ) {
     Divider(Modifier.height(0.4.dp).alpha(0.5f), color = MaterialTheme.colorScheme.outline)
@@ -143,7 +143,7 @@ private fun SelectedMediaContainer(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBarChatScreen(
-    state: MessageScreenUiState, onBackClick: () -> Unit = {}
+    state: MessageListUiState, onBackClick: () -> Unit = {}
 ) {
     TopAppBar(
         navigationIcon = {
@@ -204,14 +204,13 @@ fun AppBarChatScreen(
 
 @Composable
 private fun EntryTextBar(
-    state: MessageScreenUiState,
+    state: MessageListUiState,
     onShowSelectorFile: () -> Unit = {},
     onClickSendMessage: () -> Unit = {},
     onAcessSticker: () -> Unit = {},
 ) {
     val barHeight = 56.dp
     val hasContentToSend = state.hasContentToSend
-//    val stateMessageIsEmpty = state.messageValue.isEmpty()
 
     Row(
         modifier = Modifier
@@ -330,7 +329,7 @@ private fun EntryTextBar(
 @Composable
 fun ChatScreenPreview() {
     MessageScreen(
-        MessageScreenUiState(
+        MessageListUiState(
             messages = messageListSample,
         )
     )

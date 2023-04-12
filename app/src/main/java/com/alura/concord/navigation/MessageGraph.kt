@@ -28,24 +28,25 @@ import com.alura.concord.medias.launchPickDocumentMedia
 import com.alura.concord.medias.launchPickVisualMedia
 import com.alura.concord.medias.setResultFromFileSelection
 import com.alura.concord.medias.setResultFromImageSelection
+import com.alura.concord.ui.chat.BottomSheetViewModel
 import com.alura.concord.ui.chat.MessageListViewModel
 import com.alura.concord.ui.chat.MessageScreen
 import com.alura.concord.ui.components.BottomSheetFiles
 import com.alura.concord.ui.components.BottomSheetStickers
 import kotlinx.coroutines.launch
 
-fun NavGraphBuilder.messageGraphBottoms(
+fun NavGraphBuilder.messageGraph(
     onBack: () -> Unit = {},
 ) {
     composable(messageChatFullPath) { backStackEntry ->
         backStackEntry.arguments?.getString(messageChatIdArgument)?.let { chatId ->
             val viewModelMessage = hiltViewModel<MessageListViewModel>()
             val state by viewModelMessage.uiState.collectAsState()
+            val coroutineScope = rememberCoroutineScope()
             val context = LocalContext.current
 
-            val showBottomSheetSticker = remember { mutableStateOf(false) }
-            val showBottomSheetFile = remember { mutableStateOf(false) }
-            val coroutineScope = rememberCoroutineScope()
+            val bottomSheetStateViewModel = hiltViewModel<BottomSheetViewModel>()
+            val bottomSheetState by bottomSheetStateViewModel.uiState.collectAsState()
 
             val pickMediaFiles =
                 setResultFromImageSelection(
@@ -73,10 +74,9 @@ fun NavGraphBuilder.messageGraphBottoms(
                 rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
                     if (isGranted) {
                         viewModelMessage.setImagePermission(true)
-                        showBottomSheetSticker.value = true
+                        bottomSheetState.onShowBottomSheetStickerChange(true)
                         context.showMessage("Permissões concedidas")
                     } else {
-
                         context.showMessage("Permissões ainda não concedidas")
                     }
                 }
@@ -90,7 +90,7 @@ fun NavGraphBuilder.messageGraphBottoms(
                     }
                 },
                 onShowSelectorFile = {
-                    showBottomSheetFile.value = true
+                    bottomSheetState.onShowBottomSheetFileChange(true)
 
                 },
                 onShowSelectorStickers = {
@@ -99,41 +99,44 @@ fun NavGraphBuilder.messageGraphBottoms(
                         requestPermissionLauncher = requestPermissionLauncher,
                         onPermissionHasObtained = {
                             viewModelMessage.setImagePermission(true)
-                            showBottomSheetSticker.value = true
+                            bottomSheetState.onShowBottomSheetStickerChange(true)
                         })
                 },
                 onDeselectMedia = {
                     viewModelMessage.deselectMedia()
                 },
                 onBack = {
+                    coroutineScope.launch {
+                        viewModelMessage.cleanLastOpenChat()
+                    }
                     onBack()
                 }
             )
 
-            if (showBottomSheetSticker.value) {
+            if (bottomSheetState.showBottomSheetSticker) {
                 ModalBottomSheetSticker(
                     onSelectedSticker = {
-                        showBottomSheetSticker.value = false
+                        bottomSheetState.onShowBottomSheetStickerChange(false)
                         viewModelMessage.loadMediaInScreen(uri = it.toString())
                         coroutineScope.launch {
                             viewModelMessage.sendMessage()
                         }
                     }, onBack = {
-                        showBottomSheetSticker.value = false
+                        bottomSheetState.onShowBottomSheetStickerChange(false)
                     })
             }
 
-            if (showBottomSheetFile.value) {
+            if (bottomSheetState.showBottomSheetFile) {
                 ModalBottomSheetFile(
                     onSelectPhoto = {
-                        showBottomSheetFile.value = false
+                        bottomSheetState.onShowBottomSheetFileChange(false)
                         launchPickVisualMedia(pickMediaImage, "image/*")
                     },
                     onSelectFile = {
-                        showBottomSheetFile.value = false
+                        bottomSheetState.onShowBottomSheetFileChange(false)
                         launchPickDocumentMedia(pickMediaFiles)
                     }, onBack = {
-                        showBottomSheetFile.value = false
+                        bottomSheetState.onShowBottomSheetFileChange(false)
                     })
             }
         }
@@ -195,19 +198,6 @@ fun ModalBottomSheetFile(
 }
 
 
-internal const val messageChatRoute = "messages"
-internal const val messageChatIdArgument = "chatId"
-internal const val messageChatFullPath = "$messageChatRoute/{$messageChatIdArgument}"
-
-
-fun NavHostController.navigateToMessageScreen(
-    chatId: Long,
-    navOptions: NavOptions? = null
-) {
-    navigate("$messageChatRoute/$chatId", navOptions)
-}
-
-
 fun checkImagePermission(
     context: Context,
     onPermissionHasObtained: () -> Unit = {},
@@ -245,3 +235,16 @@ private fun requestImagePermission(requestPermissionLauncher: ManagedActivityRes
         )
     }
 }
+
+internal const val messageChatRoute = "messages"
+internal const val messageChatIdArgument = "chatId"
+internal const val messageChatFullPath = "$messageChatRoute/{$messageChatIdArgument}"
+
+
+internal fun NavHostController.navigateToMessageScreen(
+    chatId: Long,
+    navOptions: NavOptions? = null
+) {
+    navigate("$messageChatRoute/$chatId", navOptions)
+}
+
