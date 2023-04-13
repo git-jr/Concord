@@ -5,9 +5,9 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,9 +21,9 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.alura.concord.*
 import com.alura.concord.R
+import com.alura.concord.data.Image
 import com.alura.concord.extensions.showMessage
-import com.alura.concord.medias.launchPickDocumentMedia
-import com.alura.concord.medias.launchPickVisualMedia
+import com.alura.concord.medias.loadImagesAndThumbs
 import com.alura.concord.medias.setResultFromFileSelection
 import com.alura.concord.medias.setResultFromImageSelection
 import com.alura.concord.ui.chat.MessageListViewModel
@@ -42,8 +42,9 @@ fun NavGraphBuilder.messageGraph(
             val coroutineScope = rememberCoroutineScope()
             val context = LocalContext.current
 
+
             val pickMediaFiles =
-                setResultFromImageSelection(
+                setResultFromFileSelection(
                     onSelectedFile = { path, name ->
                         if (state.messageValue.isEmpty()) {
                             state.onMessageValueChange(
@@ -57,8 +58,9 @@ fun NavGraphBuilder.messageGraph(
                     }
                 )
 
+//            setResultFromFileSelection
             val pickMediaImage =
-                setResultFromFileSelection(
+                setResultFromImageSelection(
                     onSelectedImage = {
                         viewModelMessage.loadMediaInScreen(uri = it)
                     },
@@ -108,7 +110,12 @@ fun NavGraphBuilder.messageGraph(
             )
 
             if (state.showBottomSheetSticker) {
+
+                val stickerList: MutableList<Image> = loadImagesAndThumbs(LocalContext.current)
+
+
                 ModalBottomSheetSticker(
+                    stickerList,
                     onSelectedSticker = {
                         viewModelMessage.setShowBottomSheetSticker(false)
                         viewModelMessage.loadMediaInScreen(uri = it.toString())
@@ -124,11 +131,11 @@ fun NavGraphBuilder.messageGraph(
                 ModalBottomSheetFile(
                     onSelectPhoto = {
                         viewModelMessage.setShowBottomSheetFile(false)
-                        launchPickVisualMedia(pickMediaImage, "image/*")
+                        pickMediaImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
                     onSelectFile = {
                         viewModelMessage.setShowBottomSheetFile(false)
-                        launchPickDocumentMedia(pickMediaFiles)
+                        pickMediaFiles.launch(arrayOf("*/*")) // Others: arrayOf("application/pdf", "image/png")
                     }, onBack = {
                         viewModelMessage.setShowBottomSheetFile(false)
                     })
@@ -140,6 +147,7 @@ fun NavGraphBuilder.messageGraph(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModalBottomSheetSticker(
+    stickerList: MutableList<Image>,
     onSelectedSticker: (Uri) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
@@ -150,6 +158,7 @@ fun ModalBottomSheetSticker(
         containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
         content = {
             BottomSheetStickers(
+                stickerList = stickerList,
                 onSelectedSticker = { uri ->
                     onSelectedSticker(uri)
                 }
