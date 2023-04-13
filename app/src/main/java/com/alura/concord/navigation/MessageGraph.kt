@@ -3,13 +3,11 @@ package com.alura.concord.navigation
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
@@ -21,16 +19,20 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.alura.concord.*
 import com.alura.concord.R
-import com.alura.concord.data.Image
 import com.alura.concord.extensions.showMessage
+import com.alura.concord.medias.createFileSelectionResult
+import com.alura.concord.medias.createImageSelectionResult
 import com.alura.concord.medias.loadImagesAndThumbs
-import com.alura.concord.medias.setResultFromFileSelection
-import com.alura.concord.medias.setResultFromImageSelection
 import com.alura.concord.ui.chat.MessageListViewModel
 import com.alura.concord.ui.chat.MessageScreen
-import com.alura.concord.ui.components.BottomSheetFiles
-import com.alura.concord.ui.components.BottomSheetStickers
+import com.alura.concord.ui.components.ModalBottomSheetFile
+import com.alura.concord.ui.components.ModalBottomSheetSticker
 import kotlinx.coroutines.launch
+
+internal const val messageChatRoute = "messages"
+internal const val messageChatIdArgument = "chatId"
+internal const val messageChatFullPath = "$messageChatRoute/{$messageChatIdArgument}"
+
 
 fun NavGraphBuilder.messageGraph(
     onBack: () -> Unit = {},
@@ -43,8 +45,8 @@ fun NavGraphBuilder.messageGraph(
             val context = LocalContext.current
 
 
-            val pickMediaFiles =
-                setResultFromFileSelection(
+            val selectorMediaFiles =
+                createFileSelectionResult(
                     onSelectedFile = { path, name ->
                         if (state.messageValue.isEmpty()) {
                             state.onMessageValueChange(
@@ -58,9 +60,9 @@ fun NavGraphBuilder.messageGraph(
                     }
                 )
 
-//            setResultFromFileSelection
-            val pickMediaImage =
-                setResultFromImageSelection(
+
+            val selectorMediaImages =
+                createImageSelectionResult(
                     onSelectedImage = {
                         viewModelMessage.loadMediaInScreen(uri = it)
                     },
@@ -110,10 +112,7 @@ fun NavGraphBuilder.messageGraph(
             )
 
             if (state.showBottomSheetSticker) {
-
-                val stickerList: MutableList<Image> = loadImagesAndThumbs(LocalContext.current)
-
-
+                val stickerList = loadImagesAndThumbs(LocalContext.current)
                 ModalBottomSheetSticker(
                     stickerList,
                     onSelectedSticker = {
@@ -131,73 +130,17 @@ fun NavGraphBuilder.messageGraph(
                 ModalBottomSheetFile(
                     onSelectPhoto = {
                         viewModelMessage.setShowBottomSheetFile(false)
-                        pickMediaImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        selectorMediaImages.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
                     onSelectFile = {
                         viewModelMessage.setShowBottomSheetFile(false)
-                        pickMediaFiles.launch(arrayOf("*/*")) // Others: arrayOf("application/pdf", "image/png")
+                        selectorMediaFiles.launch(arrayOf("*/*")) // Others: arrayOf("application/pdf", "image/png")
                     }, onBack = {
                         viewModelMessage.setShowBottomSheetFile(false)
                     })
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ModalBottomSheetSticker(
-    stickerList: MutableList<Image>,
-    onSelectedSticker: (Uri) -> Unit = {},
-    onBack: () -> Unit = {}
-) {
-    val modalSheetState = rememberModalBottomSheetState()
-
-    ModalBottomSheet(
-        sheetState = modalSheetState,
-        containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        content = {
-            BottomSheetStickers(
-                stickerList = stickerList,
-                onSelectedSticker = { uri ->
-                    onSelectedSticker(uri)
-                }
-            )
-        },
-        onDismissRequest = {
-            onBack()
-        },
-    )
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ModalBottomSheetFile(
-    onSelectPhoto: () -> Unit = {},
-    onSelectFile: () -> Unit = {},
-    onBack: () -> Unit = {}
-) {
-    val modalSheetState = rememberModalBottomSheetState()
-
-    ModalBottomSheet(
-        sheetState = modalSheetState,
-        containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        content = {
-            BottomSheetFiles(
-                onSelectPhoto = {
-                    onSelectPhoto()
-                },
-                onSelectFile = {
-                    onSelectFile()
-                }
-            )
-
-        },
-        onDismissRequest = {
-            onBack()
-        },
-    )
 }
 
 
@@ -218,7 +161,10 @@ fun checkImagePermission(
             Manifest.permission.READ_MEDIA_IMAGES
         ) -> {
             requestImagePermission(requestPermissionLauncher)
-            context.showMessage("Aceite as permissões para usar essa função")
+            context.showMessage(
+                "É preciso conceder a permissão de acesso às imagens para usar essa função",
+                true
+            )
         }
         else -> {
             requestImagePermission(requestPermissionLauncher)
@@ -238,10 +184,6 @@ private fun requestImagePermission(requestPermissionLauncher: ManagedActivityRes
         )
     }
 }
-
-internal const val messageChatRoute = "messages"
-internal const val messageChatIdArgument = "chatId"
-internal const val messageChatFullPath = "$messageChatRoute/{$messageChatIdArgument}"
 
 
 internal fun NavHostController.navigateToMessageScreen(
