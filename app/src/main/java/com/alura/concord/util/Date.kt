@@ -1,13 +1,13 @@
 package com.alura.concord.util
 
-import java.text.SimpleDateFormat
-import java.util.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.random.Random
 
-
 fun getFormattedCurrentDate(): String {
-    val currentTime = Calendar.getInstance().time
-    val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val currentTime = LocalDateTime.now()
+    val dateFormat = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
     return dateFormat.format(currentTime)
 }
 

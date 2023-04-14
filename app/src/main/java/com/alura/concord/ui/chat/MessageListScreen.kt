@@ -15,8 +15,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.toColorInt
 import com.alura.concord.R
 import com.alura.concord.data.Author
 import com.alura.concord.data.messageListSample
@@ -148,7 +145,7 @@ fun AppBarChatScreen(
     TopAppBar(
         navigationIcon = {
             Row(
-                modifier = Modifier.clickable {
+                modifier = Modifier.fillMaxHeight().clickable {
                     onBackClick()
                 },
                 verticalAlignment = Alignment.CenterVertically
@@ -171,28 +168,6 @@ fun AppBarChatScreen(
         },
         title = {
             Text(text = state.ownerName, fontWeight = FontWeight.Medium)
-
-        },
-        actions = {
-            Row {
-                IconButton(
-                    onClick = { }
-                ) {
-                    Icon(
-                        Icons.Default.Search,
-                        tint = Color.White,
-                        contentDescription = null
-                    )
-                }
-
-                IconButton(onClick = { }) {
-                    Icon(
-                        Icons.Default.MoreVert,
-                        tint = Color.White,
-                        contentDescription = null
-                    )
-                }
-            }
 
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -242,7 +217,10 @@ private fun EntryTextBar(
                 value = state.messageValue,
                 onValueChange = state.onMessageValueChange,
                 modifier = Modifier.weight(5F),
-                textStyle = TextStyle(fontSize = 18.sp, color = MaterialTheme.colorScheme.outline),
+                textStyle = TextStyle.Default.copy(
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                ),
                 decorationBox = { innerValue ->
                     Box {
                         if (state.messageValue.isEmpty()) {

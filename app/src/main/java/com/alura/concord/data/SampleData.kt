@@ -33,7 +33,7 @@ val messageListSample = mutableListOf(
         content = LoremIpsum(13).values.first(),
         author = Author.USER,
         date = getRandomDate(),
-        mediaLink = "/storage/emulated/0/Download/20210329_105243.jpg"
+        mediaLink = "/storage/emulated/0/Download/imagem.jpg"
     ),
     Message(
         content = LoremIpsum(1).values.first(),
@@ -46,13 +46,6 @@ val messageListSample = mutableListOf(
         author = Author.OTHER
     ),
 )
-
-val stickersListSample = List(24) { index ->
-    Sticker(
-        name = "Sticker ${index + 1}",
-        uri = "https://picsum.photos/200?random=${index + 1}"
-    )
-}
 
 val chatListSample = mutableListOf(
     Chat(

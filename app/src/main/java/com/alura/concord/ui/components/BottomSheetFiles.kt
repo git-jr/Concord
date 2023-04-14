@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import com.alura.concord.R
+import com.alura.concord.ui.theme.ConcordTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,5 +148,7 @@ fun BottomSheetFiles(
 @Preview
 @Composable
 fun BottomSheetFilesPreview() {
-    BottomSheetFiles()
+    ConcordTheme {
+        BottomSheetFiles()
+    }
 }
