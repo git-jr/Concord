@@ -15,10 +15,8 @@ fun ConcordNavHost(
     NavHost(
         navController = navController,
         startDestination = chatListRoute,
-//        startDestination = "messages/2",
         modifier = modifier,
     ) {
-
         chatListScreen(
             onOpenChat = { chatId ->
                 navController.navigateToMessageScreen(chatId)

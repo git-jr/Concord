@@ -23,12 +23,6 @@ fun NavGraphBuilder.chatListScreen(
         val chatViewModel = hiltViewModel<ChatListViewModel>()
         val chatState by chatViewModel.uiState.collectAsState()
 
-//
-//        LaunchedEffect(Unit) {
-//            onOpenChat(1)
-//        }
-//
-
         if (chatState.isLoading) {
             Box(Modifier.fillMaxSize()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -42,7 +36,5 @@ fun NavGraphBuilder.chatListScreen(
                 onSendNewMessage = onSendNewMessage,
             )
         }
-
-
     }
 }

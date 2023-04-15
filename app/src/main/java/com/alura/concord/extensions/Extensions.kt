@@ -2,13 +2,16 @@ package com.alura.concord.extensions
 
 import android.Manifest
 import android.app.Activity
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import android.util.Size
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.core.app.ActivityCompat
@@ -81,7 +84,6 @@ fun Context.checkImagePermission(
     onPermissionHasObtained: () -> Unit = {},
     requestPermissionLauncher: ManagedActivityResultLauncher<String, Boolean>
 ) {
-
     when {
         ContextCompat.checkSelfPermission(
             this,
@@ -111,4 +113,31 @@ fun Context.checkImagePermission(
             requestImagePermission(requestPermissionLauncher)
         }
     }
+}
+
+fun Long.toUri(): Uri = ContentUris.withAppendedId(
+    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+    this
+)
+
+fun Context.toThumbnail(
+    imageId: Long,
+    width: Int = 500,
+    height: Int = 500
+): Bitmap? {
+    val thumbnail = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        this.contentResolver.loadThumbnail(
+            imageId.toUri(),
+            Size(width, height),
+            null
+        )
+    } else {
+        MediaStore.Images.Thumbnails.getThumbnail(
+            this.contentResolver,
+            imageId,
+            MediaStore.Images.Thumbnails.MINI_KIND,
+            null
+        )
+    }
+    return thumbnail
 }

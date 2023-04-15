@@ -16,7 +16,7 @@ import com.alura.concord.extensions.checkImagePermission
 import com.alura.concord.extensions.getPathAndName
 import com.alura.concord.extensions.getPath
 import com.alura.concord.extensions.showMessage
-import com.alura.concord.medias.loadImagesAndThumbs
+import com.alura.concord.medias.loadExternalImages
 import com.alura.concord.ui.chat.MessageListViewModel
 import com.alura.concord.ui.chat.MessageScreen
 import com.alura.concord.ui.components.ModalBottomSheetFile
@@ -48,11 +48,9 @@ fun NavGraphBuilder.messageListScreen(
                     }
                 }
 
-
             MessageScreen(
                 state = uiState,
                 onSendMessage = {
-
                     viewModelMessage.sendMessage()
 
                 },
@@ -77,7 +75,7 @@ fun NavGraphBuilder.messageListScreen(
             )
 
             if (uiState.showBottomSheetSticker) {
-                val stickerList = loadImagesAndThumbs(LocalContext.current)
+                val stickerList = loadExternalImages(LocalContext.current)
                 ModalBottomSheetSticker(
                     stickerList,
                     onSelectedSticker = {
@@ -141,7 +139,6 @@ internal fun NavHostController.navigateToMessageScreen(
     chatId: Long,
     navOptions: NavOptions? = null
 ) {
-
     navigate("$messageChatRoute/$chatId", navOptions)
 }
 
