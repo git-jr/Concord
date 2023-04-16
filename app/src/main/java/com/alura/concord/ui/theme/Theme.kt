@@ -16,15 +16,32 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
+    primary = Green40,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
+
+    tertiaryContainer = Green40,
+    onPrimaryContainer = YellowDark10,
+    inversePrimary = Red10,
+    outline = GrayDark10,
+    surfaceVariant = GreenDark20,
+    surface = GreenDark30,
+    background = GreenDark30
+
+
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
+    primary = Green40,
     secondary = PurpleGrey40,
-    tertiary = Pink40
+    tertiary = Pink40,
+
+    tertiaryContainer = Green10,
+    onPrimaryContainer = Yellow10,
+    inversePrimary = Red10,
+    outline = Gray10,
+    surfaceVariant = Green20
+
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -41,7 +58,7 @@ private val LightColorScheme = lightColorScheme(
 fun ConcordTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
