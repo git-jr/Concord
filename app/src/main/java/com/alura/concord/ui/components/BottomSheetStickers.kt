@@ -1,7 +1,6 @@
 package com.alura.concord.ui.components
 
 import android.net.Uri
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -19,13 +18,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alura.concord.R
-import com.alura.concord.extensions.toThumbnail
-import com.alura.concord.extensions.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModalBottomSheetSticker(
-    stickerList: MutableList<Long>,
+    stickerList: MutableList<Long> = mutableListOf<Long>(),
     onSelectedSticker: (Uri) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
@@ -83,7 +80,7 @@ private fun BottomSheetStickers(
                     Modifier
                         .fillMaxSize()
                         .padding(8.dp)
-                        .clickable { onSelectedSticker(item.toUri()) }
+//                        .clickable { onSelectedSticker() }
                 ) {
 
                     coil.compose.AsyncImage(
@@ -91,7 +88,7 @@ private fun BottomSheetStickers(
                             .size(50.dp)
                             .align(Alignment.Center),
                         contentScale = ContentScale.Inside,
-                        model = context.toThumbnail(item),
+                        model = "",
                         placeholder = painterResource(R.drawable.image_place_holder),
                         error = painterResource(R.drawable.image_place_holder),
                         contentDescription = null,
