@@ -3,7 +3,6 @@ package com.alura.concord.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 
@@ -16,17 +15,15 @@ fun ConcordNavHost(
     NavHost(
         navController = navController,
         startDestination = chatListRoute,
-//        startDestination = "messages/${6}",
         modifier = modifier,
     ) {
-
-        chatListGraph(
+        chatListScreen(
             onOpenChat = { chatId ->
                 navController.navigateToMessageScreen(chatId)
             }
         )
 
-        messageGraph(
+        messageListScreen(
             onBack = {
                 navController.navigateUp()
             }

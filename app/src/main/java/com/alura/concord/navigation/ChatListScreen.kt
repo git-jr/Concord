@@ -1,8 +1,12 @@
 package com.alura.concord.navigation
 
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -11,7 +15,7 @@ import com.alura.concord.ui.home.ChatListViewModel
 
 internal const val chatListRoute = "chat"
 
-fun NavGraphBuilder.chatListGraph(
+fun NavGraphBuilder.chatListScreen(
     onOpenChat: (Long) -> Unit = {},
     onSendNewMessage: () -> Unit = {},
 ) {
@@ -19,20 +23,18 @@ fun NavGraphBuilder.chatListGraph(
         val chatViewModel = hiltViewModel<ChatListViewModel>()
         val chatState by chatViewModel.uiState.collectAsState()
 
-        LaunchedEffect(chatState.selectedId) {
-            chatState.selectedId?.let { selectedId ->
-                onOpenChat(selectedId)
-                chatViewModel.setChatId(null)
+        if (chatState.isLoading) {
+            Box(Modifier.fillMaxSize()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
+        } else {
+            ChatListScreen(
+                state = chatState,
+                onOpenChat = {
+                    onOpenChat(it)
+                },
+                onSendNewMessage = onSendNewMessage,
+            )
         }
-
-
-        ChatListScreen(
-            state = chatState,
-            onOpenChat = {
-                chatViewModel.setChatId(it)
-            },
-            onSendNewMessage = onSendNewMessage,
-        )
     }
 }

@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "30ed385dc0d03adc6348723e34e925c8",
+    "identityHash": "f4612fe59b61d4dfe4409fc1c079b6e3",
     "entities": [
       {
         "tableName": "Chat",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `owner` TEXT NOT NULL, `profilePicOwner` TEXT NOT NULL, `lastMessage` TEXT NOT NULL, `dateLastMessage` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `owner` TEXT NOT NULL, `profilePicOwner` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -23,18 +23,6 @@
           {
             "fieldPath": "profilePicOwner",
             "columnName": "profilePicOwner",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "lastMessage",
-            "columnName": "lastMessage",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "dateLastMessage",
-            "columnName": "dateLastMessage",
             "affinity": "TEXT",
             "notNull": true
           }
@@ -102,7 +90,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '30ed385dc0d03adc6348723e34e925c8')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f4612fe59b61d4dfe4409fc1c079b6e3')"
     ]
   }
 }

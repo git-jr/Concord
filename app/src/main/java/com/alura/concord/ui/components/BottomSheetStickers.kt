@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -18,12 +19,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alura.concord.R
-import com.alura.concord.data.Image
+import com.alura.concord.extensions.toThumbnail
+import com.alura.concord.extensions.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModalBottomSheetSticker(
-    stickerList: MutableList<Image>,
+    stickerList: MutableList<Long>,
     onSelectedSticker: (Uri) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
@@ -49,9 +51,11 @@ fun ModalBottomSheetSticker(
 
 @Composable
 private fun BottomSheetStickers(
-    stickerList: MutableList<Image>,
+    stickerList: MutableList<Long>,
     onSelectedSticker: (Uri) -> Unit = {}
 ) {
+    val context = LocalContext.current
+
     Column(
         Modifier
             .fillMaxWidth()
@@ -79,7 +83,7 @@ private fun BottomSheetStickers(
                     Modifier
                         .fillMaxSize()
                         .padding(8.dp)
-                        .clickable { onSelectedSticker(item.uri) }
+                        .clickable { onSelectedSticker(item.toUri()) }
                 ) {
 
                     coil.compose.AsyncImage(
@@ -87,7 +91,7 @@ private fun BottomSheetStickers(
                             .size(50.dp)
                             .align(Alignment.Center),
                         contentScale = ContentScale.Inside,
-                        model = item.thumbnail,
+                        model = context.toThumbnail(item),
                         placeholder = painterResource(R.drawable.image_place_holder),
                         error = painterResource(R.drawable.image_place_holder),
                         contentDescription = null,

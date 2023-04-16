@@ -3,6 +3,7 @@ package com.alura.concord
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.navigation.compose.rememberNavController
 import com.alura.concord.navigation.ConcordNavHost
 import com.alura.concord.ui.theme.ConcordTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -15,7 +16,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ConcordTheme {
-                ConcordNavHost()
+                val navController = rememberNavController()
+                ConcordNavHost(navController = navController)
             }
         }
     }

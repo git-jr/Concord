@@ -1,23 +1,21 @@
 package com.alura.concord.ui.chat
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alura.concord.ConcordApplication
-import com.alura.concord.R
 import com.alura.concord.data.Author
 import com.alura.concord.data.Message
 import com.alura.concord.data.messageListSample
 import com.alura.concord.database.ChatDao
 import com.alura.concord.database.MessageDao
-import com.alura.concord.database.preferences.PreferencesKey.LAST_OPEN_CHAT
 import com.alura.concord.navigation.messageChatIdArgument
 import com.alura.concord.util.getFormattedCurrentDate
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,15 +23,14 @@ import javax.inject.Inject
 class MessageListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val messageDao: MessageDao,
-    private val dataStore: DataStore<Preferences>,
     private val chatDao: ChatDao,
-    private val application: ConcordApplication,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MessageListUiState())
     val uiState: StateFlow<MessageListUiState>
         get() = _uiState.asStateFlow()
 
-    private var chatId: Long = savedStateHandle.get<String>(messageChatIdArgument)?.toLong() ?: 0
+    private var chatId: Long =
+        requireNotNull(savedStateHandle.get<String>(messageChatIdArgument)?.toLong())
 
     init {
         initWithSamples()
@@ -77,7 +74,7 @@ class MessageListViewModel @Inject constructor(
     private fun loadMessages() {
         viewModelScope.launch {
             messageDao.getByChatId(chatId).collect { messages ->
-                messages?.let {
+                messages.let {
                     _uiState.value = _uiState.value.copy(
                         messages = it
                     )
@@ -98,18 +95,12 @@ class MessageListViewModel @Inject constructor(
         }
     }
 
-    private suspend fun updateLastMessageChat(
+    private fun saveMessage(
         userMessage: Message
     ) {
-        userMessage.let { messageDao.insert(it) }
-        val lastMessage =
-            _uiState.value.messageValue.ifEmpty {
-                application.applicationContext.getString(
-                    R.string.media
-                )
-            }
-
-        chatDao.updateLastMessage(chatId, lastMessage, userMessage.date)
+        viewModelScope.launch {
+            userMessage.let { messageDao.insert(it) }
+        }
     }
 
     private fun cleanFields() {
@@ -120,7 +111,7 @@ class MessageListViewModel @Inject constructor(
         )
     }
 
-    suspend fun sendMessage() {
+    fun sendMessage() {
         with(_uiState) {
             if (!value.hasContentToSend) {
                 return
@@ -133,15 +124,15 @@ class MessageListViewModel @Inject constructor(
                 mediaLink = value.mediaInSelection,
                 date = getFormattedCurrentDate(),
             )
-            updateLastMessageChat(userMessage)
+            saveMessage(userMessage)
             cleanFields()
         }
     }
 
     fun loadMediaInScreen(
-        uri: String
+        path: String
     ) {
-        _uiState.value.onMediaInSelectionChange(uri)
+        _uiState.value.onMediaInSelectionChange(path)
     }
 
     fun deselectMedia() {
@@ -157,13 +148,6 @@ class MessageListViewModel @Inject constructor(
         )
     }
 
-    suspend fun cleanLastOpenChat() {
-        viewModelScope.launch {
-            dataStore.edit {
-                it.remove(LAST_OPEN_CHAT)
-            }
-        }
-    }
 
     fun setShowBottomSheetSticker(value: Boolean) {
         _uiState.value = _uiState.value.copy(
