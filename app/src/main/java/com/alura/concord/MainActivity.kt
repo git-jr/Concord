@@ -1,6 +1,7 @@
 package com.alura.concord
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
@@ -13,6 +14,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+//        filesDir.listFiles()?.forEach {
+//            Log.i("files", "onCreate interno: ${it.name}")
+//        }
+//
+//        getExternalFilesDir("Stickers")?.listFiles()?.forEach {
+//            Log.i("files", "onCreate externo: ${it.name}")
+//        }
 
         setContent {
             ConcordTheme {

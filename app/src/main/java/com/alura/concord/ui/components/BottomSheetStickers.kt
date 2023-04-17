@@ -22,7 +22,7 @@ import com.alura.concord.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModalBottomSheetSticker(
-    stickerList: MutableList<Long> = mutableListOf<Long>(),
+    stickerList: MutableList<String> = mutableListOf(),
     onSelectedSticker: (Uri) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
@@ -48,7 +48,7 @@ fun ModalBottomSheetSticker(
 
 @Composable
 private fun BottomSheetStickers(
-    stickerList: MutableList<Long>,
+    stickerList: MutableList<String>,
     onSelectedSticker: (Uri) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -88,7 +88,7 @@ private fun BottomSheetStickers(
                             .size(50.dp)
                             .align(Alignment.Center),
                         contentScale = ContentScale.Inside,
-                        model = "",
+                        model = item,
                         placeholder = painterResource(R.drawable.image_place_holder),
                         error = painterResource(R.drawable.image_place_holder),
                         contentDescription = null,

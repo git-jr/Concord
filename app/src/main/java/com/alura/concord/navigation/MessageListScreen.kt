@@ -1,7 +1,9 @@
 package com.alura.concord.navigation
 
+import android.util.Log
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -24,6 +26,8 @@ fun NavGraphBuilder.messageListScreen(
         backStackEntry.arguments?.getString(messageChatIdArgument)?.let { chatId ->
             val viewModelMessage = hiltViewModel<MessageListViewModel>()
             val uiState by viewModelMessage.uiState.collectAsState()
+            val context = LocalContext.current
+
 
             MessageScreen(
                 state = uiState,
@@ -47,7 +51,17 @@ fun NavGraphBuilder.messageListScreen(
             )
 
             if (uiState.showBottomSheetSticker) {
+                val stickerList = mutableListOf<String>()
+
+                context.getExternalFilesDir("Stickers")?.listFiles()?.forEach {
+                    if (it.isFile) {
+                        stickerList.add(it.path)
+                        Log.i("files", "onCreate externo: ${it.name}")
+                    }
+                }
+
                 ModalBottomSheetSticker(
+                    stickerList = stickerList,
                     onSelectedSticker = {
                         viewModelMessage.setShowBottomSheetSticker(false)
                         viewModelMessage.loadMediaInScreen(path = it.toString())
