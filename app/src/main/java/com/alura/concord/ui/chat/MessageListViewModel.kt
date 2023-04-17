@@ -34,7 +34,7 @@ class MessageListViewModel @Inject constructor(
 
     init {
         initWithSamples()
-        loadDatas()
+//        loadDatas()
 
         _uiState.update { state ->
             state.copy(
@@ -64,6 +64,7 @@ class MessageListViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(
             messages = messageListSample,
         )
+        loadChatsInfos()
     }
 
     private fun loadDatas() {

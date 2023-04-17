@@ -5,43 +5,59 @@ import com.alura.concord.util.getRandomDate
 
 val messageListSample = mutableListOf(
     Message(
+        id = 3L,
+        chatId = 3L,
         content = "Olá",
         author = Author.USER,
         date = getRandomDate(),
     ),
     Message(
+        id = 3L,
+        chatId = 3L,
         content = LoremIpsum(2).values.first(),
         author = Author.OTHER,
         date = getRandomDate()
     ),
     Message(
+        id = 3L,
+        chatId = 3L,
         content = LoremIpsum(13).values.first(),
         author = Author.USER,
         date = getRandomDate(),
     ),
     Message(
+        id = 3L,
+        chatId = 3L,
         content = LoremIpsum(14).values.last(),
         author = Author.OTHER
     ),
     Message(
+        id = 3L,
+        chatId = 3L,
         content = LoremIpsum(8).values.first(),
         author = Author.USER,
         date = getRandomDate(),
         mediaLink = "/data/user/0/com.alura.concord/app_temImages/94f077ed-a81f-4a74-ac5b-6e44130e80b1"
     ),
     Message(
+        id = 3L,
+        chatId = 3L,
         content = LoremIpsum(13).values.first(),
         author = Author.USER,
         date = getRandomDate(),
         mediaLink = "/storage/emulated/0/Download/imagem.jpg"
     ),
     Message(
+        id = 3L,
+        chatId = 3L,
         content = LoremIpsum(1).values.first(),
         author = Author.USER,
         date = getRandomDate(),
         mediaLink = "content://media/external/images/media/94"
     ),
     Message(
+        id = 3L,
+        chatId = 3L,
         content = LoremIpsum(7).values.first(),
         author = Author.OTHER
     ),

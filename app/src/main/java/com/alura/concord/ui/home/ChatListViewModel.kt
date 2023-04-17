@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
@@ -27,7 +28,7 @@ class ChatListViewModel @Inject constructor(
 
     private fun loadChats() {
         viewModelScope.launch {
-            delay(1000)
+            delay(Random.nextLong(100, 800))
             chatDao.getAllWithLastMessage().collect { chatListWithLastMessage ->
                 val chatList = chatListWithLastMessage.map { chatWithLastMessage ->
                     with(chatWithLastMessage) {
