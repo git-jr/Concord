@@ -53,7 +53,7 @@ val messageListSample = mutableListOf(
         content = LoremIpsum(1).values.first(),
         author = Author.USER,
         date = getRandomDate(),
-        mediaLink = "content://media/external/images/media/94"
+        mediaLink = "/data/data/com.alura.concord/files/torta.png"
     ),
     Message(
         id = 3L,
